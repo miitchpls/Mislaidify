@@ -1,0 +1,60 @@
+@reference '../../../styles.scss';
+
+.hero {
+  @apply px-4 py-6 sm:p-8 h-dvh overflow-hidden flex flex-col justify-between items-center text-white;
+
+  .background {
+    @apply absolute object-cover top-0 h-full w-full z-[-1];
+  }
+
+  .header {
+    @apply w-full;
+  }
+
+  .container {
+    @apply flex-1 flex items-center justify-center w-full;
+
+    .content {
+      @apply flex flex-col items-center text-center drop-shadow-2xl gap-5 sm:gap-8;
+
+      .motto {
+        @apply text-2xl sm:text-4xl lg:text-6xl font-medium;
+        text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb,
+          0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0, 0, 0, 0.1),
+          0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3),
+          0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25),
+          0 10px 10px rgba(0, 0, 0, 0.2), 0 20px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .welcome {
+        @apply text-xl sm:text-3xl uppercase;
+
+        span {
+          @apply font-bold;
+        }
+      }
+
+      .description {
+        @apply max-w-2xl text-sm sm:text-base;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9),
+          -1px -1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      .login-button {
+        @apply flex items-center gap-3 bg-spotify px-6 sm:px-7 py-2 font-semibold rounded-3xl uppercase text-sm sm:text-base;
+
+        svg {
+          @apply fill-white w-5 h-5;
+        }
+      }
+    }
+  }
+
+  .footer {
+    @apply w-full;
+  }
+}
+
+span {
+  @apply text-secondary;
+}
