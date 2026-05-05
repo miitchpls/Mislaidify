@@ -1,0 +1,19 @@
+info:
+  name: /authorize
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{url}}/authorize?redirect_uri=http://127.0.0.1:4200/dashboard"
+  params:
+    - name: redirect_uri
+      value: http://127.0.0.1:4200/dashboard
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
