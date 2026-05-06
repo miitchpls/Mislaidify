@@ -1,27 +1,36 @@
 # Mislaidify
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.6.
+> Listen. Save. Organize. Repeat.
 
-## Development server
+Mislaidify is a web app that checks which of your saved Spotify songs are not in any of your playlists.
 
-Run `ng serve` for a dev server. Navigate to `http://127.0.0.1:4200/`. The application will automatically reload if you change any of the source files.
+Ever find a song while driving, save it to your library, and then forget to add it to the right playlist? Mislaidify solves exactly that — it scans your Spotify saved songs and surfaces the ones that haven't made it into any playlist yet.
 
-## Code scaffolding
+Built with Angular 19 and Tailwind CSS.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Getting started
 
-## Build
+Install dependencies:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+```bash
+npm install
+```
 
-## Running unit tests
+## Scripts
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+| Command | Description |
+|---|---|
+| `npm start` | Runs the Angular dev server alongside the mock server (uses `nodemon`) |
+| `npm run start:prod` | Runs the Angular dev server in production configuration |
+| `npm run build` | Builds the app for production |
+| `npm run watch` | Builds in watch mode (development) |
+| `npm test` | Runs unit tests headlessly (single run) |
+| `npm run test:debug` | Runs unit tests with Chrome debugger |
 
-## Running end-to-end tests
+## Development
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+The `npm start` command spins up two processes concurrently:
+- **Mock server** — Express server (`mock-server/index.js`) for local development without hitting the real Spotify API
+- **Angular dev server** — served at `http://localhost:4200`
 
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+For production, the app authenticates via Spotify OAuth directly from the hero page.
