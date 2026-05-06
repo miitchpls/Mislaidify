@@ -29,6 +29,7 @@
     "@angular/compiler-cli": "^19.2.21",
     "@tailwindcss/postcss": "^4.2.4",
     "@types/jasmine": "~5.1.0",
+    "@types/spotify-api": "^0.0.26",
     "concurrently": "^9.2.1",
     "cors": "^2.8.6",
     "ejs": "^5.0.2",
