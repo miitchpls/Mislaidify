@@ -1,0 +1,32 @@
+{
+  "display_name": "Michele",
+  "external_urls": {
+    "spotify": "https://open.spotify.com/user/xwared"
+  },
+  "href": "http://localhost:8080/v1/users/xwared",
+  "id": "xwared",
+  "images": [
+    {
+      "url": "http://localhost:8080/public/me.jpeg",
+      "height": 64,
+      "width": 64
+    },
+    {
+      "url": "http://localhost:8080/public/me.jpeg",
+      "height": 300,
+      "width": 300
+    }
+  ],
+  "type": "user",
+  "uri": "spotify:user:xwared",
+  "followers": {
+    "href": null,
+    "total": 21
+  },
+  "country": "IT",
+  "product": "premium",
+  "explicit_content": {
+    "filter_enabled": false,
+    "filter_locked": false
+  }
+}
