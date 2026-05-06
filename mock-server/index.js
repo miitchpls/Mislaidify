@@ -57,7 +57,11 @@ app.get("/authorize", (req, res) => {
   } catch {
     return res.status(400).send("Invalid redirect_uri");
   }
-  res.render("authorize", { redirectUrl: redirectUri + "?code=M0ck3dC0d3" });
+  res.render("authorize", {
+    redirectUrl: redirectUri + "?code=M0ck3dC0d3",
+    userName: meMock.display_name,
+    userAvatar: meMock.images?.[0]?.url,
+  });
 });
 app.post("/api/token", (req, res) => res.json(tokenMock));
 

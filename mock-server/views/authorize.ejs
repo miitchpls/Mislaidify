@@ -1,65 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Authorize Mislaidify</title>
-    <style>
-      body {
-        margin: 0;
-        margin-top: 96px;
-        background-color: #121212;
-        color: white;
-        font-family: Arial, sans-serif;
-      }
 
-      .flex-col {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Authorize Mislaidify</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            spotify: '#1ed760',
+            surface: '#121212',
+          }
+        }
       }
+    }
+  </script>
+</head>
 
-      p {
-        margin: 0;
-      }
+<body class="bg-surface text-white font-sans min-h-screen">
 
-      .title {
-        font-weight: 700;
-        margin-bottom: 32px;
-      }
-      .title p {
-        font-size: 2rem;
-      }
+  <!-- Spotify logo -->
+  <div class="fixed top-6 left-8 flex items-center gap-2">
+    <svg class="w-8 h-8 fill-white" viewBox="0 0 24 24" role="img" aria-label="Spotify">
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+    </svg>
+    <span class="text-2xl font-semibold tracking-tight">Spotify</span>
+  </div>
 
-      li {
-        padding-top: 4px;
-      }
+  <!-- Main content -->
+  <div class="flex flex-col items-center px-6 pt-24 pb-16">
+    <div class="flex flex-col items-center w-full max-w-[380px]">
 
-      button {
-        width: 270px;
-        font-weight: 700;
-        background-color: #1ed760;
-        padding: 16px 32px 16px 32px;
-        border-radius: 32px;
-      }
-    </style>
-  </head>
-  <body class="flex-col">
-    <div class="title flex-col">
-      <span>Allow Spotify to connect to:</span>
-      <p>Mislaidify</p>
+      <!-- Title -->
+      <div class="flex flex-col items-center gap-1 mb-5 text-center">
+        <span class="text-sm font-bold">Allow Spotify to connect to:</span>
+        <p class="text-[2rem] font-bold">Mislaidify</p>
+      </div>
+
+      <!-- User info -->
+      <div class="flex flex-col items-center gap-2 mb-7">
+        <div class="flex items-center gap-2.5">
+          <img src="<%= userAvatar %>" alt="<%= userName %>" class="w-8 h-8 rounded-full object-cover" />
+          <span class="text-sm"><%= userName %></span>
+        </div>
+        <a href="#" class="text-sm text-spotify no-underline hover:underline">Not you?</a>
+      </div>
+
+      <!-- Permissions -->
+      <div class="w-full mb-6">
+        <p class="text-sm font-bold mb-4">You agree that Mislaidify will be able to:</p>
+
+        <div class="flex items-start gap-4 mb-5">
+          <svg class="shrink-0 w-6 h-6 fill-white mt-0.5" role="img" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M6.703 7.382A6.073 6.073 0 0 0 6.113 10c0 3.292 2.614 6 5.887 6 3.273 0 5.886-2.708 5.886-6 0-.936-.211-1.825-.589-2.618.573.341 1.115.744 1.634 1.204.674.596 1.77 1.793 2.683 3.414-.913 1.62-2.01 2.818-2.683 3.414C17.037 17.093 14.833 18 12 18s-5.037-.907-6.931-2.586c-.674-.596-1.77-1.793-2.683-3.414.913-1.62 2.01-2.818 2.683-3.414.519-.46 1.061-.863 1.634-1.204zM12 4C8.671 4 5.996 5.091 3.742 7.089c-.896.794-2.3 2.353-3.381 4.453L.125 12l.236.458c1.082 2.1 2.485 3.659 3.381 4.453C5.996 18.908 8.672 20 12 20c3.329 0 6.004-1.091 8.258-3.089.896-.794 2.3-2.353 3.38-4.453l.237-.458-.236-.458c-1.082-2.1-2.485-3.659-3.381-4.453C18.004 5.09 15.328 4 12 4zm0 2c2.125 0 3.886 1.77 3.886 4S14.125 14 12 14s-3.886-1.77-3.886-4S9.875 6 12 6z" />
+          </svg>
+          <div>
+            <p class="text-[0.9375rem] font-bold mb-1.5">View your Spotify account data</p>
+            <ul class="list-disc pl-[18px] flex flex-col gap-1">
+              <li class="text-sm text-[#b3b3b3]">Your Spotify subscription, account country, and explicit content filter settings.</li>
+              <li class="text-sm text-[#b3b3b3]">Your name, username, profile picture, Spotify followers, and public playlists.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <svg class="shrink-0 w-6 h-6 fill-white mt-0.5" role="img" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M22 22H2v-2h20v2ZM10.5 2a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1h-3ZM3 10a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1H3Zm15-4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-3Z" />
+          </svg>
+          <div>
+            <p class="text-[0.9375rem] font-bold mb-1.5">View your activity on Spotify</p>
+            <ul class="list-disc pl-[18px] flex flex-col gap-1">
+              <li class="text-sm text-[#b3b3b3]">What you've saved in Your Library</li>
+              <li class="text-sm text-[#b3b3b3]">Playlists you've created and playlists you follow</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="w-full flex flex-col items-center gap-4 mb-8">
+        <button class="w-full text-sm font-bold text-black bg-spotify py-3.5 px-8 rounded-full cursor-pointer border-none transition-transform duration-100 hover:brightness-110 hover:scale-[1.03]">
+          Agree
+        </button>
+        <button class="text-sm font-bold text-[#b3b3b3] bg-transparent border-none cursor-pointer hover:text-white" onclick="history.back()">
+          Cancel
+        </button>
+      </div>
+
+      <!-- Footer -->
+      <div class="w-full flex flex-col gap-3">
+        <p class="text-xs text-[#6a6a6a] leading-relaxed">You can remove access at any time from your account settings.</p>
+        <p class="text-xs text-[#6a6a6a] leading-relaxed">For more information on how Mislaidify uses your personal data, see Mislaidify's privacy policy.</p>
+      </div>
+
     </div>
-
-    <div>
-      <p>You agree that Mislaidify will be able to:</p>
-      <ul>
-        <li>Lorem ipsum</li>
-        <li>Lorem ipsum</li>
-      </ul>
-    </div>
-
-    <button>I agree</button>
-  </body>
+  </div>
 
   <script>
     document
@@ -68,4 +106,7 @@
         window.location.replace("<%= redirectUrl %>")
       );
   </script>
+
+</body>
+
 </html>
