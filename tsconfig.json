@@ -30,7 +30,8 @@
       "@services/*": ["./src/app/services/*"],
       "@environments/*": ["./src/environments/*"],
       "@constants": ["./src/app/constants.ts"],
-      "@guards/*": ["./src/app/guards/*"]
+      "@guards/*": ["./src/app/guards/*"],
+      "@components/*": ["./src/app/components/*"]
     }
   },
   "angularCompilerOptions": {
