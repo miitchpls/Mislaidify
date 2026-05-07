@@ -1,13 +1,14 @@
 {
   "name": "mislaidify",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "scripts": {
     "start": "concurrently \"nodemon mock-server/index.js \" \"ng serve\"",
     "start:prod": "ng serve --configuration production",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test --watch=false --browsers=ChromeHeadless",
-    "test:debug": "ng test --browsers=ChromeDebugging"
+    "test": "jest",
+    "test:debug": "ng test --browsers=ChromeDebugging",
+    "test:watch": "jest --watch"
   },
   "private": true,
   "dependencies": {
@@ -28,20 +29,18 @@
     "@angular/cli": "^19.2.25",
     "@angular/compiler-cli": "^19.2.21",
     "@tailwindcss/postcss": "^4.2.4",
-    "@types/jasmine": "~5.1.0",
+    "@types/jest": "^30.0.0",
     "concurrently": "^9.2.1",
     "cors": "^2.8.6",
     "ejs": "^5.0.2",
     "express": "^5.2.1",
-    "jasmine-core": "~5.1.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
+    "jest": "^30.0.0",
+    "jest-environment-jsdom": "^30.0.0",
+    "jest-preset-angular": "^16.1.4",
     "nodemon": "^3.1.14",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.2.4",
+    "ts-jest": "^29.4.9",
     "typescript": "~5.8.3"
   }
 }

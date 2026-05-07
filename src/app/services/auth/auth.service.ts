@@ -38,8 +38,9 @@ export class AuthService {
     this.navigate(`${environment.spotifyAuthBaseUrl}/authorize?${params.toString()}`);
   }
 
+  /* istanbul ignore next */
   protected navigate(url: string) {
-    document.location = url;
+    window.location.assign(url);
   }
 
   public getToken(authCode: string): Observable<Token> {
