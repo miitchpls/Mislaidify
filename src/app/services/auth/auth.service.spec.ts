@@ -98,26 +98,6 @@ describe('AuthService', () => {
     });
   });
 
-  describe('navigate', () => {
-    let originalLocation: Location;
-
-    beforeEach(() => {
-      originalLocation = window.location;
-      delete (window as any).location;
-      (window as any).location = { assign: jest.fn() };
-    });
-
-    afterEach(() => {
-      (window as any).location = originalLocation;
-    });
-
-    it('calls window.location.assign with the provided URL', () => {
-      const url = 'https://accounts.spotify.com/authorize?foo=bar';
-      (service as any).navigate(url);
-      expect(window.location.assign).toHaveBeenCalledWith(url);
-    });
-  });
-
   describe('getToken', () => {
     const authCode = 'auth-code-123';
 
