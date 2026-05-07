@@ -39,7 +39,7 @@ export class AuthService {
   }
 
   protected navigate(url: string) {
-    document.location = url;
+    window.location.assign(url);
   }
 
   public getToken(authCode: string): Observable<Token> {

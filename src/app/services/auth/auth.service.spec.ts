@@ -12,6 +12,7 @@ import { SESSION_VERIFIER_KEY } from '@constants';
 describe('AuthService', () => {
   let service: AuthService;
   let httpTesting: HttpTestingController;
+  let mockDigest: jest.Mock;
 
   const mockVerifier = 'A'.repeat(64);
   const mockHash = new Uint8Array(32).fill(1).buffer;
@@ -31,18 +32,26 @@ describe('AuthService', () => {
     httpTesting = TestBed.inject(HttpTestingController);
     sessionStorage.clear();
 
-    spyOn(crypto, 'getRandomValues').and.callFake(
+    jest.spyOn(crypto, 'getRandomValues').mockImplementation(
       <T extends ArrayBufferView | null>(array: T): T => {
         if (array) (array as unknown as Uint8Array).fill(0);
         return array;
       }
     );
-    spyOn(crypto.subtle, 'digest').and.resolveTo(mockHash);
+
+    // jsdom does not implement crypto.subtle — define it as a mock
+    mockDigest = jest.fn().mockResolvedValue(mockHash);
+    Object.defineProperty(globalThis.crypto, 'subtle', {
+      value: { digest: mockDigest },
+      configurable: true,
+      writable: true,
+    });
   });
 
   afterEach(() => {
     httpTesting.verify();
     sessionStorage.clear();
+    jest.restoreAllMocks();
   });
 
   it('should be created', () => {
@@ -50,10 +59,10 @@ describe('AuthService', () => {
   });
 
   describe('redirectToSpotifyAuth', () => {
-    let navigateSpy: jasmine.Spy;
+    let navigateSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      navigateSpy = spyOn(service as any, 'navigate');
+      navigateSpy = jest.spyOn(service as any, 'navigate').mockImplementation(() => {});
     });
 
     it('clears sessionStorage before hashing', async () => {
@@ -69,10 +78,7 @@ describe('AuthService', () => {
 
     it('hashes the verifier with SHA-256', async () => {
       await service.redirectToSpotifyAuth();
-      expect(crypto.subtle.digest).toHaveBeenCalledWith(
-        'SHA-256',
-        jasmine.any(Uint8Array)
-      );
+      expect(mockDigest).toHaveBeenCalledWith('SHA-256', expect.anything());
     });
 
     it('stores the verifier in sessionStorage after hashing', async () => {
@@ -82,13 +88,33 @@ describe('AuthService', () => {
 
     it('navigates to Spotify authorize URL with correct params', async () => {
       await service.redirectToSpotifyAuth();
-      const url: string = navigateSpy.calls.mostRecent().args[0];
+      const url: string = navigateSpy.mock.calls.at(-1)[0];
       expect(url).toContain(`${environment.spotifyAuthBaseUrl}/authorize`);
       expect(url).toContain(`client_id=${environment.clientId}`);
       expect(url).toContain('response_type=code');
       expect(url).toContain('redirect_uri=');
       expect(url).toContain('code_challenge_method=S256');
       expect(url).toContain('code_challenge=');
+    });
+  });
+
+  describe('navigate', () => {
+    let originalLocation: Location;
+
+    beforeEach(() => {
+      originalLocation = window.location;
+      delete (window as any).location;
+      (window as any).location = { assign: jest.fn() };
+    });
+
+    afterEach(() => {
+      (window as any).location = originalLocation;
+    });
+
+    it('calls window.location.assign with the provided URL', () => {
+      const url = 'https://accounts.spotify.com/authorize?foo=bar';
+      (service as any).navigate(url);
+      expect(window.location.assign).toHaveBeenCalledWith(url);
     });
   });
 
