@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { EMPTY, Subject, of } from 'rxjs';
 import { SpotifyService } from '@services/spotify/spotify.service';
 import { DashboardComponent } from './dashboard.component';
 
@@ -17,7 +18,7 @@ const mockPlaylists = [
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
-  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate' | 'logout' | 'getPlaylists'>> & {
+  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate' | 'logout' | 'getPlaylists' | 'getPlaylistPage'>> & {
     currentUser: { profile: jest.Mock };
   };
   let router: Router;
@@ -38,6 +39,7 @@ describe('DashboardComponent', () => {
       authenticate: jest.fn(),
       logout: jest.fn(),
       getPlaylists: jest.fn(),
+      getPlaylistPage: jest.fn().mockReturnValue(EMPTY),
       currentUser: { profile: jest.fn() } as any,
     };
 
@@ -203,6 +205,121 @@ describe('DashboardComponent', () => {
       component.selectedPlaylistIds.add(mockPlaylists[0].id);
       component.togglePlaylist(mockPlaylists[0]);
       expect(component.selectedPlaylistIds.has(mockPlaylists[0].id)).toBe(false);
+    });
+
+    it('starts track fetch when selecting a playlist', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.togglePlaylist(mockPlaylists[0]);
+      expect(spotifyService.getPlaylistPage).toHaveBeenCalledWith(mockPlaylists[0].id, 0);
+    });
+
+    it('accumulates tracks as pages arrive', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      const page2Subject = new Subject<any>();
+      spotifyService.getPlaylistPage
+        .mockReturnValueOnce(of({ items: [{ track: { id: 't1' } }], offset: 0, total: 100 }))
+        .mockReturnValueOnce(page2Subject.asObservable());
+
+      component.togglePlaylist(mockPlaylists[0]);
+      page2Subject.next({ items: [{ track: { id: 't2' } }], offset: 50, total: 100 });
+      page2Subject.complete();
+
+      expect(component.playlistTracks.get(mockPlaylists[0].id)).toHaveLength(2);
+    });
+
+    it('commits in-flight page but does not continue after deselection', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      const pageSubject = new Subject<any>();
+      spotifyService.getPlaylistPage.mockReturnValue(pageSubject.asObservable());
+
+      component.togglePlaylist(mockPlaylists[0]); // select
+      component.togglePlaylist(mockPlaylists[0]); // deselect
+
+      pageSubject.next({ items: [{ track: { id: 't1' } }], offset: 0, total: 100 });
+      pageSubject.complete();
+
+      expect(component.playlistTracks.get(mockPlaylists[0].id)).toHaveLength(1); // committed
+      expect(spotifyService.getPlaylistPage).toHaveBeenCalledTimes(1); // no next page
+    });
+
+    it('does not start a new fetch if subscription is still active when reselected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      const pageSubject = new Subject<any>();
+      spotifyService.getPlaylistPage.mockReturnValue(pageSubject.asObservable());
+
+      component.togglePlaylist(mockPlaylists[0]); // select
+      component.togglePlaylist(mockPlaylists[0]); // deselect — subscription still active
+      component.togglePlaylist(mockPlaylists[0]); // reselect
+
+      expect(spotifyService.getPlaylistPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('resumes from last committed offset after subscription completes', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      const page2Subject = new Subject<any>();
+      spotifyService.getPlaylistPage
+        .mockReturnValueOnce(of({ items: Array(50).fill({ track: { id: 't' } }), offset: 0, total: 100 }))
+        .mockReturnValueOnce(page2Subject.asObservable());
+
+      component.togglePlaylist(mockPlaylists[0]); // select — page1 lands, page2 in flight
+      component.togglePlaylist(mockPlaylists[0]); // deselect
+
+      page2Subject.next({ items: [{ track: { id: 'late' } }], offset: 50, total: 100 });
+      page2Subject.complete(); // subscription ends (deselected → expand returns EMPTY)
+
+      component.togglePlaylist(mockPlaylists[0]); // reselect
+      expect(spotifyService.getPlaylistPage).toHaveBeenLastCalledWith(mockPlaylists[0].id, 51);
+    });
+
+    it('does not re-fetch a fully loaded playlist', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      spotifyService.getPlaylistPage.mockReturnValue(
+        of({ items: [{ track: { id: 't1' } }], offset: 0, total: 1 })
+      );
+
+      component.togglePlaylist(mockPlaylists[0]); // fully loads
+      component.togglePlaylist(mockPlaylists[0]); // deselect
+      component.togglePlaylist(mockPlaylists[0]); // reselect
+
+      expect(spotifyService.getPlaylistPage).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('toggleAll() — track fetching', () => {
+    it('starts fetches for all playlists when selecting all', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.toggleAll();
+      expect(spotifyService.getPlaylistPage).toHaveBeenCalledTimes(mockPlaylists.length);
+    });
+
+    it('commits in-flight pages but does not continue after deselect all', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      const subjects = mockPlaylists.map(() => new Subject<any>());
+      let callIndex = 0;
+      spotifyService.getPlaylistPage.mockImplementation(() => subjects[callIndex++ % subjects.length].asObservable());
+
+      component.toggleAll(); // select all — starts fetches
+      component.toggleAll(); // deselect all
+
+      subjects[0].next({ items: [{ track: { id: 't1' } }], offset: 0, total: 100 });
+      subjects[0].complete();
+
+      expect(component.playlistTracks.get(mockPlaylists[0].id)).toHaveLength(1); // committed
+      expect(spotifyService.getPlaylistPage).toHaveBeenCalledTimes(mockPlaylists.length); // no extra calls
+    });
+  });
+
+  describe('ngOnDestroy()', () => {
+    it('unsubscribes all active fetches', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      const subject = new Subject<any>();
+      spotifyService.getPlaylistPage.mockReturnValue(subject.asObservable());
+
+      component.togglePlaylist(mockPlaylists[0]);
+      component.ngOnDestroy();
+      subject.next({ items: [{ track: { id: 't1' } }], offset: 0 });
+
+      expect(component.playlistTracks.get(mockPlaylists[0].id) ?? []).toHaveLength(0);
     });
   });
 

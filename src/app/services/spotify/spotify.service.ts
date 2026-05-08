@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AuthenticationResponse, SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { environment } from '@environments/environment';
 import { PlaylistObjectSimplified } from '@models';
-import { from, expand, EMPTY, concatMap, toArray, lastValueFrom } from 'rxjs';
+import { defer, expand, EMPTY, concatMap, toArray, lastValueFrom, Observable, retry, timer, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -40,15 +40,29 @@ export class SpotifyService {
     const limit = 20;
 
     return lastValueFrom(
-      from(this.currentUser.playlists.playlists(limit, 0)).pipe(
-        expand(page =>
+      this.withRateLimitRetry(defer(() => this.currentUser.playlists.playlists(limit, 0))).pipe(
+        expand((page: any) =>
           page.offset + page.items.length < page.total
-            ? from(this.currentUser.playlists.playlists(limit, page.offset + limit))
+            ? this.withRateLimitRetry(defer(() => this.currentUser.playlists.playlists(limit, page.offset + limit)))
             : EMPTY
         ),
-        concatMap(page => page.items as unknown as PlaylistObjectSimplified[]),
+        concatMap((page: any) => page.items as unknown as PlaylistObjectSimplified[]),
         toArray()
       )
+    );
+  }
+
+  /** Fetches a single page of playlist tracks starting from the given offset. */
+  public getPlaylistPage(playlistId: string, offset: number): Observable<any> {
+    return this.withRateLimitRetry(
+      defer(() => this.api.playlists.getPlaylistItems(playlistId, undefined, undefined, 50, offset))
+    );
+  }
+
+  /** Retries once per second on Spotify rate-limit errors (HTTP 429). */
+  private withRateLimitRetry<T>(source: Observable<T>): Observable<T> {
+    return source.pipe(
+      retry({ delay: err => err.message?.includes('rate limits') ? timer(5000) : throwError(() => err) })
     );
   }
 

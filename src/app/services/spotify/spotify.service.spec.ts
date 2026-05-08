@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { environment } from '@environments/environment';
+import { lastValueFrom } from 'rxjs';
 import { SpotifyService } from './spotify.service';
 
 let mockApi: {
@@ -8,6 +9,7 @@ let mockApi: {
   getAccessToken: jest.Mock;
   logOut: jest.Mock;
   currentUser: { profile: jest.Mock; playlists: { playlists: jest.Mock } };
+  playlists: { getPlaylistItems: jest.Mock };
 };
 
 jest.mock('@spotify/web-api-ts-sdk', () => ({
@@ -25,6 +27,7 @@ describe('SpotifyService', () => {
       getAccessToken: jest.fn(),
       logOut: jest.fn(),
       currentUser: { profile: jest.fn(), playlists: { playlists: jest.fn() } },
+      playlists: { getPlaylistItems: jest.fn() },
     };
     TestBed.configureTestingModule({});
     service = TestBed.inject(SpotifyService);
@@ -113,9 +116,51 @@ describe('SpotifyService', () => {
     });
   });
 
+  describe('getPlaylistPage()', () => {
+    it('calls getPlaylistItems with limit 50 and the given offset', async () => {
+      const page = { items: [], offset: 0, total: 0 };
+      mockApi.playlists.getPlaylistItems.mockResolvedValue(page);
+      await lastValueFrom(service.getPlaylistPage('pl1', 0));
+      expect(mockApi.playlists.getPlaylistItems).toHaveBeenCalledWith('pl1', undefined, undefined, 50, 0);
+    });
+
+    it('emits the page returned by the SDK', async () => {
+      const page = { items: [{ track: { id: 't1' } }], offset: 0, total: 1 };
+      mockApi.playlists.getPlaylistItems.mockResolvedValue(page);
+      const result = await lastValueFrom(service.getPlaylistPage('pl1', 0));
+      expect(result).toBe(page);
+    });
+  });
+
   describe('currentUser', () => {
     it('returns api.currentUser', () => {
       expect(service.currentUser).toBe(mockApi.currentUser);
+    });
+  });
+
+  describe('withRateLimitRetry (via getPlaylistPage)', () => {
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    it('retries after 5 s on a rate-limit error', async () => {
+      const page = { items: [], offset: 0, total: 0 };
+      mockApi.playlists.getPlaylistItems
+        .mockRejectedValueOnce(new Error('API rate limits exceeded'))
+        .mockResolvedValueOnce(page);
+
+      const resultPromise = lastValueFrom(service.getPlaylistPage('pl1', 0));
+      await jest.advanceTimersByTimeAsync(5000);
+      const result = await resultPromise;
+
+      expect(mockApi.playlists.getPlaylistItems).toHaveBeenCalledTimes(2);
+      expect(result).toBe(page);
+    });
+
+    it('does not retry on non-rate-limit errors', async () => {
+      mockApi.playlists.getPlaylistItems.mockRejectedValue(new Error('Network error'));
+
+      await expect(lastValueFrom(service.getPlaylistPage('pl1', 0))).rejects.toThrow('Network error');
+      expect(mockApi.playlists.getPlaylistItems).toHaveBeenCalledTimes(1);
     });
   });
 });
