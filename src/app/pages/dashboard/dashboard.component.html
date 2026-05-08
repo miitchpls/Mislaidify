@@ -2,14 +2,22 @@
   <div class="header">
     <img class="h-8" src="assets/logo.svg" alt="Mislaidify" />
     <div class="propic-wrapper">
-      <div class="propic skeleton"></div>
+      <div class="propic cursor-pointer" [class.skeleton]="!userProfile?.images?.length" (click)="showProfileMenu = !showProfileMenu">
+        <img *ngIf="userProfile?.images?.length" [src]="userProfile!.images![0].url" [alt]="userProfile!.id" />
+      </div>
+      <div class="profile-menu" *ngIf="showProfileMenu">
+        <button (click)="logout()">Logout</button>
+      </div>
+      <div class="overlay" *ngIf="showProfileMenu" (click)="showProfileMenu = false"></div>
     </div>
   </div>
 
   <div class="container">
     <div class="content">
       <div class="welcome">
-        Welcome <span class="skeleton rounded-lg inline-block align-middle w-32 h-7"></span>
+        Welcome
+        <span *ngIf="userProfile?.display_name; else nameSkeleton">{{ userProfile!.display_name }}</span>
+        <ng-template #nameSkeleton><span class="skeleton rounded-lg inline-block align-middle w-32 h-7"></span></ng-template>
       </div>
 
       <div class="columns">
