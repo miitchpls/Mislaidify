@@ -7,7 +7,7 @@ let mockApi: {
   authenticate: jest.Mock;
   getAccessToken: jest.Mock;
   logOut: jest.Mock;
-  currentUser: { profile: jest.Mock };
+  currentUser: { profile: jest.Mock; playlists: { playlists: jest.Mock } };
 };
 
 jest.mock('@spotify/web-api-ts-sdk', () => ({
@@ -24,7 +24,7 @@ describe('SpotifyService', () => {
       authenticate: jest.fn(),
       getAccessToken: jest.fn(),
       logOut: jest.fn(),
-      currentUser: { profile: jest.fn() },
+      currentUser: { profile: jest.fn(), playlists: { playlists: jest.fn() } },
     };
     TestBed.configureTestingModule({});
     service = TestBed.inject(SpotifyService);
@@ -86,6 +86,30 @@ describe('SpotifyService', () => {
     it('delegates to api.logOut()', () => {
       service.logout();
       expect(mockApi.logOut).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getPlaylists()', () => {
+    it('fetches a single page when all playlists fit in one request', async () => {
+      const items = [{ id: '1' }, { id: '2' }];
+      mockApi.currentUser.playlists.playlists.mockResolvedValue({ items, total: 2, offset: 0 });
+      const result = await service.getPlaylists();
+      expect(mockApi.currentUser.playlists.playlists).toHaveBeenCalledTimes(1);
+      expect(mockApi.currentUser.playlists.playlists).toHaveBeenCalledWith(20, 0);
+      expect(result).toEqual(items);
+    });
+
+    it('fetches multiple pages until all playlists are retrieved', async () => {
+      const page1 = [{ id: '1' }];
+      const page2 = [{ id: '2' }];
+      mockApi.currentUser.playlists.playlists
+        .mockResolvedValueOnce({ items: page1, total: 2, offset: 0 })
+        .mockResolvedValueOnce({ items: page2, total: 2, offset: 20 });
+      const result = await service.getPlaylists();
+      expect(mockApi.currentUser.playlists.playlists).toHaveBeenCalledTimes(2);
+      expect(mockApi.currentUser.playlists.playlists).toHaveBeenNthCalledWith(1, 20, 0);
+      expect(mockApi.currentUser.playlists.playlists).toHaveBeenNthCalledWith(2, 20, 20);
+      expect(result).toEqual([...page1, ...page2]);
     });
   });
 

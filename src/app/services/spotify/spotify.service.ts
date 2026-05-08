@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { AuthenticationResponse, SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { environment } from '@environments/environment';
+import { PlaylistObjectSimplified } from '@models';
+import { from, expand, EMPTY, concatMap, toArray, lastValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -32,6 +34,22 @@ export class SpotifyService {
 
   public logout(): void {
     this.api.logOut();
+  }
+
+  public getPlaylists(): Promise<PlaylistObjectSimplified[]> {
+    const limit = 20;
+
+    return lastValueFrom(
+      from(this.currentUser.playlists.playlists(limit, 0)).pipe(
+        expand(page =>
+          page.offset + page.items.length < page.total
+            ? from(this.currentUser.playlists.playlists(limit, page.offset + limit))
+            : EMPTY
+        ),
+        concatMap(page => page.items as unknown as PlaylistObjectSimplified[]),
+        toArray()
+      )
+    );
   }
 
   public get currentUser() {

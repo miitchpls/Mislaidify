@@ -9,17 +9,23 @@ const mockProfile = {
   images: [{ url: 'https://example.com/avatar.jpg' }],
 } as any;
 
+const mockPlaylists = [
+  { id: '1', name: 'Playlist 1', images: [{ url: 'https://example.com/1.jpg' }] },
+  { id: '2', name: 'Playlist 2', images: [{ url: 'https://example.com/2.jpg' }] },
+] as any[];
+
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
-  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate' | 'logout'>> & {
+  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate' | 'logout' | 'getPlaylists'>> & {
     currentUser: { profile: jest.Mock };
   };
   let router: Router;
 
-  const setup = async (authenticated: boolean, profile: any = null) => {
+  const setup = async (authenticated: boolean, profile: any = null, playlists: any[] = []) => {
     spotifyService.authenticate.mockResolvedValue({ authenticated, accessToken: null as any });
     spotifyService.currentUser.profile.mockResolvedValue(profile);
+    spotifyService.getPlaylists.mockResolvedValue(playlists);
 
     fixture = TestBed.createComponent(DashboardComponent);
     component = fixture.componentInstance;
@@ -31,6 +37,7 @@ describe('DashboardComponent', () => {
     spotifyService = {
       authenticate: jest.fn(),
       logout: jest.fn(),
+      getPlaylists: jest.fn(),
       currentUser: { profile: jest.fn() } as any,
     };
 
@@ -51,16 +58,20 @@ describe('DashboardComponent', () => {
   });
 
   describe('ngOnInit', () => {
-    it('loads user profile when authenticated', async () => {
-      await setup(true, mockProfile);
+    it('loads user profile and playlists when authenticated', async () => {
+      await setup(true, mockProfile, mockPlaylists);
       expect(spotifyService.currentUser.profile).toHaveBeenCalledTimes(1);
+      expect(spotifyService.getPlaylists).toHaveBeenCalledTimes(1);
       expect(component.userProfile).toBe(mockProfile);
+      expect(component.playlists).toBe(mockPlaylists);
     });
 
-    it('does not load profile when not authenticated', async () => {
+    it('does not load profile or playlists when not authenticated', async () => {
       await setup(false);
       expect(spotifyService.currentUser.profile).not.toHaveBeenCalled();
+      expect(spotifyService.getPlaylists).not.toHaveBeenCalled();
       expect(component.userProfile).toBeUndefined();
+      expect(component.playlists).toBeUndefined();
     });
   });
 
@@ -114,6 +125,22 @@ describe('DashboardComponent', () => {
       fixture.nativeElement.querySelector('.overlay').click();
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('.profile-menu')).toBeNull();
+    });
+  });
+
+  describe('playlist grid', () => {
+    it('shows 8 skeleton cards when playlists are not loaded', async () => {
+      await setup(false);
+      const skeletons = fixture.nativeElement.querySelectorAll('playlist-card-skeleton');
+      expect(skeletons.length).toBe(8);
+      expect(fixture.nativeElement.querySelector('playlist-card')).toBeNull();
+    });
+
+    it('shows playlist cards and no skeletons when playlists are loaded', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      const cards = fixture.nativeElement.querySelectorAll('playlist-card');
+      expect(cards.length).toBe(mockPlaylists.length);
+      expect(fixture.nativeElement.querySelector('playlist-card-skeleton')).toBeNull();
     });
   });
 
