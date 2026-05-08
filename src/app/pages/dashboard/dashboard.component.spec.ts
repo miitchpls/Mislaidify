@@ -18,10 +18,13 @@ const mockPlaylists = [
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
-  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate' | 'logout' | 'getPlaylists' | 'getPlaylistPage'>> & {
+  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate' | 'logout' | 'getPlaylists' | 'getPlaylistPage' | 'getSavedTracksPage'>> & {
     currentUser: { profile: jest.Mock };
   };
   let router: Router;
+
+  // Flushes all pending microtasks and macrotasks so async component work completes.
+  const flushPromises = () => new Promise<void>(resolve => setTimeout(resolve, 0));
 
   const setup = async (authenticated: boolean, profile: any = null, playlists: any[] = []) => {
     spotifyService.authenticate.mockResolvedValue({ authenticated, accessToken: null as any });
@@ -30,16 +33,24 @@ describe('DashboardComponent', () => {
 
     fixture = TestBed.createComponent(DashboardComponent);
     component = fixture.componentInstance;
-    await component.ngOnInit();
-    fixture.detectChanges();
+    fixture.detectChanges();   // triggers ngOnInit (once) and ngAfterViewInit via Angular lifecycle
+    await flushPromises();     // waits for all async work in ngOnInit (including fetchNextTracksPage)
+    fixture.detectChanges();   // re-renders DOM with final state
   };
 
   beforeEach(async () => {
+    global.IntersectionObserver = jest.fn().mockImplementation(() => ({
+      observe: jest.fn(),
+      disconnect: jest.fn(),
+      unobserve: jest.fn(),
+    }));
+
     spotifyService = {
       authenticate: jest.fn(),
       logout: jest.fn(),
       getPlaylists: jest.fn(),
       getPlaylistPage: jest.fn().mockReturnValue(EMPTY),
+      getSavedTracksPage: jest.fn().mockReturnValue(of({ items: [], total: 0, offset: 0 })),
       currentUser: { profile: jest.fn() } as any,
     };
 
@@ -330,6 +341,95 @@ describe('DashboardComponent', () => {
       component.logout();
       expect(spotifyService.logout).toHaveBeenCalledTimes(1);
       expect(navigateSpy).toHaveBeenCalledWith('');
+    });
+  });
+
+  const mockTrackItem = { track: { id: 't1', name: 'T1', artists: [], album: { images: [] }, external_urls: { spotify: '' } } } as any;
+
+  describe('saved tracks loading', () => {
+    it('loads saved tracks after playlists resolve', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+      expect(spotifyService.getSavedTracksPage).toHaveBeenCalledWith(0);
+      expect(component.savedTracks).toHaveLength(1);
+    });
+
+    it('does not load saved tracks when not authenticated', async () => {
+      await setup(false);
+      expect(spotifyService.getSavedTracksPage).not.toHaveBeenCalled();
+      expect(component.savedTracks).toBeUndefined();
+    });
+  });
+
+  describe('scroll-based track fetching', () => {
+    const nearBottom = (el: HTMLElement) => {
+      Object.defineProperty(el, 'scrollTop', { get: () => 900, configurable: true });
+      Object.defineProperty(el, 'clientHeight', { get: () => 100, configurable: true });
+      Object.defineProperty(el, 'scrollHeight', { get: () => 1000, configurable: true });
+    };
+
+    const farFromBottom = (el: HTMLElement) => {
+      Object.defineProperty(el, 'scrollTop', { get: () => 0, configurable: true });
+      Object.defineProperty(el, 'clientHeight', { get: () => 100, configurable: true });
+      Object.defineProperty(el, 'scrollHeight', { get: () => 1000, configurable: true });
+    };
+
+    it('fetches the next page when scrolled near the bottom', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 100, offset: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+      const tracksEl = fixture.nativeElement.querySelector('.tracks');
+      nearBottom(tracksEl);
+      tracksEl.dispatchEvent(new Event('scroll'));
+      await flushPromises();
+      expect(spotifyService.getSavedTracksPage).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not fetch when scrolled far from the bottom', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 100, offset: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+      const tracksEl = fixture.nativeElement.querySelector('.tracks');
+      farFromBottom(tracksEl);
+      tracksEl.dispatchEvent(new Event('scroll'));
+      expect(spotifyService.getSavedTracksPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not start a concurrent fetch while one is in progress', async () => {
+      const subject = new Subject<any>();
+      spotifyService.getSavedTracksPage.mockReturnValue(subject.asObservable());
+      await setup(true, mockProfile, mockPlaylists);
+
+      const tracksEl = fixture.nativeElement.querySelector('.tracks');
+      nearBottom(tracksEl);
+      tracksEl.dispatchEvent(new Event('scroll'));
+
+      expect(spotifyService.getSavedTracksPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch when all tracks are already loaded', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+
+      const tracksEl = fixture.nativeElement.querySelector('.tracks');
+      nearBottom(tracksEl);
+      tracksEl.dispatchEvent(new Event('scroll'));
+
+      expect(spotifyService.getSavedTracksPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch before authentication completes', async () => {
+      await setup(false);
+      const tracksEl = fixture.nativeElement.querySelector('.tracks');
+      nearBottom(tracksEl);
+      tracksEl.dispatchEvent(new Event('scroll'));
+      expect(spotifyService.getSavedTracksPage).not.toHaveBeenCalled();
     });
   });
 });

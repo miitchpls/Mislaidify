@@ -43,8 +43,13 @@
           <div class="title">Your Songs</div>
 
           <div class="tracks-wrapper">
-            <div class="tracks">
-              <track-card-skeleton *ngFor="let i of [1,2,3,4,5,6,7,8]"></track-card-skeleton>
+            <div class="tracks" #tracksContainer>
+              <ng-container *ngIf="savedTracks; else trackSkeletons">
+                <track-card *ngFor="let track of savedTracks" [track]="track"></track-card>
+              </ng-container>
+              <ng-template #trackSkeletons>
+                <track-card-skeleton *ngFor="let i of [1,2,3,4,5,6,7,8]"></track-card-skeleton>
+              </ng-template>
             </div>
           </div>
         </div>

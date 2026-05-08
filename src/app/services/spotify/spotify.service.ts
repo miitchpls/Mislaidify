@@ -52,6 +52,13 @@ export class SpotifyService {
     );
   }
 
+  /** Fetches a single page of the current user's saved tracks starting from the given offset. */
+  public getSavedTracksPage(offset: number): Observable<any> {
+    return this.withRateLimitRetry(
+      defer(() => this.api.currentUser.tracks.savedTracks(20, offset))
+    );
+  }
+
   /** Fetches a single page of playlist tracks starting from the given offset. */
   public getPlaylistPage(playlistId: string, offset: number): Observable<any> {
     return this.withRateLimitRetry(

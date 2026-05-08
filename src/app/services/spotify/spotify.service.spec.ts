@@ -8,7 +8,7 @@ let mockApi: {
   authenticate: jest.Mock;
   getAccessToken: jest.Mock;
   logOut: jest.Mock;
-  currentUser: { profile: jest.Mock; playlists: { playlists: jest.Mock } };
+  currentUser: { profile: jest.Mock; playlists: { playlists: jest.Mock }; tracks: { savedTracks: jest.Mock } };
   playlists: { getPlaylistItems: jest.Mock };
 };
 
@@ -26,7 +26,7 @@ describe('SpotifyService', () => {
       authenticate: jest.fn(),
       getAccessToken: jest.fn(),
       logOut: jest.fn(),
-      currentUser: { profile: jest.fn(), playlists: { playlists: jest.fn() } },
+      currentUser: { profile: jest.fn(), playlists: { playlists: jest.fn() }, tracks: { savedTracks: jest.fn() } },
       playlists: { getPlaylistItems: jest.fn() },
     };
     TestBed.configureTestingModule({});
@@ -135,6 +135,22 @@ describe('SpotifyService', () => {
   describe('currentUser', () => {
     it('returns api.currentUser', () => {
       expect(service.currentUser).toBe(mockApi.currentUser);
+    });
+  });
+
+  describe('getSavedTracksPage()', () => {
+    it('calls savedTracks with limit 20 and the given offset', async () => {
+      const page = { items: [], offset: 0, total: 0 };
+      mockApi.currentUser.tracks.savedTracks.mockResolvedValue(page);
+      await lastValueFrom(service.getSavedTracksPage(0));
+      expect(mockApi.currentUser.tracks.savedTracks).toHaveBeenCalledWith(20, 0);
+    });
+
+    it('emits the page returned by the SDK', async () => {
+      const page = { items: [{ track: { id: 't1' } }], offset: 0, total: 1 };
+      mockApi.currentUser.tracks.savedTracks.mockResolvedValue(page);
+      const result = await lastValueFrom(service.getSavedTracksPage(0));
+      expect(result).toBe(page);
     });
   });
 

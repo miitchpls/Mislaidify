@@ -1,0 +1,35 @@
+<div class="track-card" [ngClass]="{ selected: selected }">
+  <div class="overlay"></div>
+  <div class="content">
+    <div class="details" (click)="toggleCard(!selected)">
+      <checkbox [checked]="selected" (hasChecked)="toggleCard($event)"></checkbox>
+      <img class="album-cover" [src]="albumCover" [alt]="track.name" />
+      <div class="track-info">
+        <span>{{ track.name }}</span>
+        <span class="text-white/60">{{ artistNames }}</span>
+      </div>
+    </div>
+    <div class="actions">
+      <!--
+        "Add to playlist" button disabled: to show which playlists already contain a track,
+        all playlist tracks would need to be pre-loaded eagerly. The Spotify saved-tracks
+        endpoint does not return playlist membership, so there is no cheap way to get this
+        information. Lazy-loading all playlists upfront is too expensive for the current UX.
+      -->
+      <!-- <button class="add-to-playlist">
+        <svg>
+          <use
+            xlink:href="assets/add_track_to_playlist.svg#svg"
+            href="assets/add_track_to_playlist.svg#svg"
+          ></use>
+        </svg>
+      </button> -->
+
+      <a [href]="spotifyUrl" target="_blank">
+        <svg class="open-on-spotify">
+          <use xlink:href="assets/spotify.svg#svg" href="assets/spotify.svg#svg"></use>
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>

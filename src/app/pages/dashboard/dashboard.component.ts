@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { PlaylistCardSkeletonComponent } from '@components/playlist-card-skeleton/playlist-card-skeleton.component';
 import { TrackCardSkeletonComponent } from '@components/track-card-skeleton/track-card-skeleton.component';
+import { TrackCardComponent } from '@components/track-card/track-card.component';
 import { Router } from '@angular/router';
-import { CurrentUsersProfileResponse, PlaylistObjectSimplified } from '@models';
+import { CurrentUsersProfileResponse, PlaylistObjectSimplified, TrackObject } from '@models';
 import { SpotifyService } from '@services/spotify/spotify.service';
 import { PlaylistCardComponent } from '@components/playlist-card/playlist-card.component';
 import { AllPlaylistsCardComponent } from '@components/all-playlists-card/all-playlists-card.component';
-import { EMPTY, Subscription, expand, tap } from 'rxjs';
+import { EMPTY, Subscription, expand, lastValueFrom, tap } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,22 +17,32 @@ import { EMPTY, Subscription, expand, tap } from 'rxjs';
     AllPlaylistsCardComponent,
     PlaylistCardSkeletonComponent,
     PlaylistCardComponent,
-    TrackCardSkeletonComponent
+    TrackCardSkeletonComponent,
+    TrackCardComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public showProfileMenu: boolean = false;
   public userProfile?: CurrentUsersProfileResponse;
   public playlists?: PlaylistObjectSimplified[];
   public selectedPlaylistIds = new Set<string>();
   public playlistTracks = new Map<string, any[]>();
+  public savedTracks?: TrackObject[];
 
   private trackFetchOffsets = new Map<string, number>();
   private trackFetchSubscriptions = new Map<string, Subscription>();
   private completedTrackFetches = new Set<string>();
+
+  private savedTracksOffset = 0;
+  private savedTracksTotal = Infinity;
+  private isFetchingTracks = false;
+  private tracksEnabled = false;
+  private readonly onTracksScroll = () => this.fetchIfNearBottom();
+
+  @ViewChild('tracksContainer') private tracksContainer!: ElementRef;
 
   constructor(
     private router: Router,
@@ -46,9 +57,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.spotifyService.currentUser.profile() as unknown as Promise<CurrentUsersProfileResponse>,
       this.spotifyService.getPlaylists(),
     ]);
+
+    this.tracksEnabled = true;
+    this.fetchNextTracksPage();
+  }
+
+  public ngAfterViewInit(): void {
+    this.tracksContainer.nativeElement.addEventListener('scroll', this.onTracksScroll);
   }
 
   public ngOnDestroy(): void {
+    this.tracksContainer?.nativeElement?.removeEventListener('scroll', this.onTracksScroll);
     this.trackFetchSubscriptions.forEach(sub => sub.unsubscribe());
   }
 
@@ -82,6 +101,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public logout(): void {
     this.spotifyService.logout();
     this.router.navigateByUrl('');
+  }
+
+  private fetchIfNearBottom(): void {
+    const el = this.tracksContainer.nativeElement;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+      this.fetchNextTracksPage();
+    }
+  }
+
+  private async fetchNextTracksPage(): Promise<void> {
+    if (!this.tracksEnabled || this.isFetchingTracks || this.savedTracksOffset >= this.savedTracksTotal) return;
+    this.isFetchingTracks = true;
+    const page = await lastValueFrom(this.spotifyService.getSavedTracksPage(this.savedTracksOffset));
+    this.savedTracksTotal = page.total;
+    this.savedTracks = [...(this.savedTracks ?? []), ...page.items.map((item: any) => item.track as TrackObject)];
+    this.savedTracksOffset += page.items.length;
+    this.isFetchingTracks = false;
   }
 
   /**
