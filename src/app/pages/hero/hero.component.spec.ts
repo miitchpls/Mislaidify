@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AuthService } from '@services/auth/auth.service';
+import { SpotifyService } from '@services/spotify/spotify.service';
 import { HeroComponent } from './hero.component';
 
 describe('HeroComponent', () => {
   let component: HeroComponent;
   let fixture: ComponentFixture<HeroComponent>;
-  let authService: jest.Mocked<Pick<AuthService, 'redirectToSpotifyAuth'>>;
+  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate'>>;
 
   beforeEach(async () => {
-    authService = { redirectToSpotifyAuth: jest.fn().mockResolvedValue(undefined) };
+    spotifyService = { authenticate: jest.fn().mockResolvedValue({ authenticated: false, accessToken: null }) };
 
     await TestBed.configureTestingModule({
       imports: [HeroComponent],
-      providers: [{ provide: AuthService, useValue: authService }],
+      providers: [{ provide: SpotifyService, useValue: spotifyService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeroComponent);
@@ -25,13 +25,13 @@ describe('HeroComponent', () => {
   });
 
   describe('login button', () => {
-    it('calls redirectToSpotifyAuth when clicked', () => {
+    it('calls authenticate when clicked', () => {
       fixture.nativeElement.querySelector('.login-button').click();
-      expect(authService.redirectToSpotifyAuth).toHaveBeenCalledTimes(1);
+      expect(spotifyService.authenticate).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call redirectToSpotifyAuth before any interaction', () => {
-      expect(authService.redirectToSpotifyAuth).not.toHaveBeenCalled();
+    it('does not call authenticate before any interaction', () => {
+      expect(spotifyService.authenticate).not.toHaveBeenCalled();
     });
   });
 });
