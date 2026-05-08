@@ -20,17 +20,15 @@ npm install
 
 | Command | Description |
 |---|---|
-| `npm start` | Runs the Angular dev server alongside the mock server (uses `nodemon`) |
-| `npm run start:prod` | Runs the Angular dev server in production configuration |
+| `npm start` | Starts the Angular dev server at `http://localhost:4200` |
 | `npm run build` | Builds the app for production |
 | `npm run watch` | Builds in watch mode (development) |
-| `npm test` | Runs unit tests headlessly (single run) |
-| `npm run test:debug` | Runs unit tests with Chrome debugger |
+| `npm test` | Runs unit tests (single run) |
+| `npm run test:watch` | Runs unit tests in watch mode |
+| `npm run test:coverage` | Runs unit tests with coverage report |
 
 ## Development
 
-The `npm start` command spins up two processes concurrently:
-- **Mock server** — Express server (`mock-server/index.js`) for local development without hitting the real Spotify API
-- **Angular dev server** — served at `http://localhost:4200`
+The app authenticates directly against the Spotify OAuth flow. On first load, the user is redirected to Spotify to authorize the app. After authorization, the SDK stores the access token locally and the dashboard loads the user's playlists and saved tracks.
 
-For production, the app authenticates via Spotify OAuth directly from the hero page.
+Spotify OAuth requires the redirect URI to be registered in your [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
