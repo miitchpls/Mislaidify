@@ -11,4 +11,9 @@ import { SpotifyIconComponent } from '@components/spotify-icon/spotify-icon.comp
 })
 export class HeroComponent {
   constructor(public spotifyService: SpotifyService) { }
+
+  public async login(): Promise<void> {
+    this.spotifyService.logout();
+    await this.spotifyService.authenticate();
+  }
 }

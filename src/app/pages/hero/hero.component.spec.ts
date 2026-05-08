@@ -5,10 +5,13 @@ import { HeroComponent } from './hero.component';
 describe('HeroComponent', () => {
   let component: HeroComponent;
   let fixture: ComponentFixture<HeroComponent>;
-  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate'>>;
+  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate' | 'logout'>>;
 
   beforeEach(async () => {
-    spotifyService = { authenticate: jest.fn().mockResolvedValue({ authenticated: false, accessToken: null }) };
+    spotifyService = {
+      authenticate: jest.fn().mockResolvedValue({ authenticated: false, accessToken: null }),
+      logout: jest.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [HeroComponent],
@@ -25,13 +28,20 @@ describe('HeroComponent', () => {
   });
 
   describe('login button', () => {
-    it('calls authenticate when clicked', () => {
-      fixture.nativeElement.querySelector('.login-button').click();
-      expect(spotifyService.authenticate).toHaveBeenCalledTimes(1);
+    it('does not call logout or authenticate before any interaction', () => {
+      expect(spotifyService.logout).not.toHaveBeenCalled();
+      expect(spotifyService.authenticate).not.toHaveBeenCalled();
     });
 
-    it('does not call authenticate before any interaction', () => {
-      expect(spotifyService.authenticate).not.toHaveBeenCalled();
+    it('calls logout then authenticate when clicked', async () => {
+      const callOrder: string[] = [];
+      spotifyService.logout.mockImplementation(() => callOrder.push('logout'));
+      spotifyService.authenticate.mockImplementation(async () => { callOrder.push('authenticate'); return { authenticated: false, accessToken: null } as any; });
+
+      fixture.nativeElement.querySelector('.login-button').click();
+      await fixture.whenStable();
+
+      expect(callOrder).toEqual(['logout', 'authenticate']);
     });
   });
 });
