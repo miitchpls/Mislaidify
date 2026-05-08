@@ -40,18 +40,32 @@
         </div>
 
         <div class="column">
-          <div class="title">Your Songs</div>
+          <div class="title">Mislaid tracks</div>
 
-          <div class="tracks-wrapper">
-            <div class="tracks" #tracksContainer>
-              <ng-container *ngIf="savedTracks; else trackSkeletons">
-                <track-card *ngFor="let track of savedTracks" [track]="track"></track-card>
-              </ng-container>
-              <ng-template #trackSkeletons>
-                <track-card-skeleton *ngFor="let i of [1,2,3,4,5,6,7,8]"></track-card-skeleton>
-              </ng-template>
+          <ng-container [ngSwitch]="selectedPlaylistIds.size !== 0">
+            <div class="tracks-wrapper" *ngSwitchCase="true">
+              <div class="tracks" #tracksContainer>
+                <ng-container *ngIf="mislaidTracks?.length; else trackSkeletons">
+                  <track-card *ngFor="let track of mislaidTracks" [track]="track"></track-card>
+                </ng-container>
+                <ng-template #trackSkeletons>
+                  <track-card-skeleton *ngFor="let i of [1,2,3,4,5,6,7,8]"></track-card-skeleton>
+                </ng-template>
+              </div>
             </div>
-          </div>
+
+            <div class="suggestion" *ngSwitchDefault>
+              <div>
+                <div class="main-info">
+                  <p><span>Select playlists</span> to find songs not in them yet.</p>
+                </div>
+                <div class="sub-info">
+                  <p>We compare your saved songs with the playlist you select and show you the ones that haven't been
+                  added.</p>
+                </div>
+              </div>
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>

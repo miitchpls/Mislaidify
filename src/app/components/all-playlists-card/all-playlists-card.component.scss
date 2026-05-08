@@ -4,7 +4,7 @@
   @apply aspect-square rounded-3xl flex flex-col-reverse justify-between relative overflow-hidden p-5 cursor-pointer brightness-50 bg-secondary;
 
   &:hover {
-    @apply brightness-75;
+    @apply brightness-100;
   }
 
   p {
@@ -17,13 +17,5 @@
 }
 
 .all-playlists-card.selected {
-  @apply brightness-100 ring-4 ring-primary bg-primary;
-
-  p {
-    @apply text-secondary;
-  }
-
-  svg {
-    @apply fill-secondary;
-  }
+  @apply brightness-100 ring-4 ring-secondary;
 }

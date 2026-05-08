@@ -111,3 +111,24 @@
     }
   }
 }
+
+.suggestion {
+  @apply flex justify-center items-center grow text-center cursor-default;
+
+  div {
+    @apply flex flex-col items-center gap-5;
+
+    .main-info {
+      @apply flex-none text-3xl font-semibold max-w-sm;
+
+      span {
+        @apply text-secondary font-bold;
+      }
+    }
+
+    .sub-info {
+      @apply font-medium text-white/60 max-w-80;
+    }
+  }
+
+}

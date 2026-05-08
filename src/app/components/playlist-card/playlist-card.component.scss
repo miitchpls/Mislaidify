@@ -1,14 +1,14 @@
 @reference '../../../styles.css';
 
 :host(.selected) .playlist-card {
-  @apply brightness-100 ring-4 ring-primary;
+  @apply brightness-100 ring-4 ring-secondary;
 }
 
 .playlist-card {
   @apply aspect-square rounded-3xl flex flex-col-reverse relative overflow-hidden p-5 cursor-pointer brightness-50;
 
   &:hover {
-    @apply brightness-75;
+    @apply brightness-100;
   }
 
   img {

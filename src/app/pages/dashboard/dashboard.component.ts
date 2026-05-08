@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { PlaylistCardSkeletonComponent } from '@components/playlist-card-skeleton/playlist-card-skeleton.component';
 import { TrackCardSkeletonComponent } from '@components/track-card-skeleton/track-card-skeleton.component';
 import { TrackCardComponent } from '@components/track-card/track-card.component';
@@ -23,7 +23,7 @@ import { EMPTY, Subscription, expand, lastValueFrom, tap } from 'rxjs';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
+export class DashboardComponent implements OnInit, OnDestroy {
 
   public showProfileMenu: boolean = false;
   public userProfile?: CurrentUsersProfileResponse;
@@ -31,6 +31,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   public selectedPlaylistIds = new Set<string>();
   public playlistTracks = new Map<string, any[]>();
   public savedTracks?: TrackObject[];
+  public mislaidTracks?: TrackObject[];
 
   private trackFetchOffsets = new Map<string, number>();
   private trackFetchSubscriptions = new Map<string, Subscription>();
@@ -41,8 +42,18 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private isFetchingTracks = false;
   private tracksEnabled = false;
   private readonly onTracksScroll = () => this.fetchIfNearBottom();
+  private _tracksContainer?: ElementRef;
 
-  @ViewChild('tracksContainer') private tracksContainer!: ElementRef;
+  @ViewChild('tracksContainer')
+  set tracksContainer(el: ElementRef | undefined) {
+    if (this._tracksContainer) {
+      this._tracksContainer.nativeElement.removeEventListener('scroll', this.onTracksScroll);
+    }
+    this._tracksContainer = el;
+    if (el) {
+      el.nativeElement.addEventListener('scroll', this.onTracksScroll);
+    }
+  }
 
   constructor(
     private router: Router,
@@ -62,12 +73,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fetchNextTracksPage();
   }
 
-  public ngAfterViewInit(): void {
-    this.tracksContainer.nativeElement.addEventListener('scroll', this.onTracksScroll);
-  }
-
   public ngOnDestroy(): void {
-    this.tracksContainer?.nativeElement?.removeEventListener('scroll', this.onTracksScroll);
+    this._tracksContainer?.nativeElement?.removeEventListener('scroll', this.onTracksScroll);
     this.trackFetchSubscriptions.forEach(sub => sub.unsubscribe());
   }
 
@@ -87,6 +94,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     }
+    this.recomputeMislaidTracks();
   }
 
   public togglePlaylist(playlist: PlaylistObjectSimplified): void {
@@ -96,6 +104,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedPlaylistIds.add(playlist.id);
       this.startTrackFetch(playlist.id);
     }
+    this.recomputeMislaidTracks();
   }
 
   public logout(): void {
@@ -103,8 +112,26 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigateByUrl('');
   }
 
+  private recomputeMislaidTracks(): void {
+    this.mislaidTracks = [];
+
+    if (!this.savedTracks || this.selectedPlaylistIds.size === 0) return;
+
+    const readyPlaylistIds = [...this.selectedPlaylistIds].filter(id => this.completedTrackFetches.has(id));
+
+    if (readyPlaylistIds.length === 0 || readyPlaylistIds.length !== this.selectedPlaylistIds.size) return;
+
+    const playlistTrackIds = new Set<string>();
+    for (const id of readyPlaylistIds) {
+      for (const track of this.playlistTracks.get(id) ?? []) {
+        if (track?.id) playlistTrackIds.add(track.id);
+      }
+    }
+    this.mislaidTracks = this.savedTracks.filter(t => !playlistTrackIds.has(t.id));
+  }
+
   private fetchIfNearBottom(): void {
-    const el = this.tracksContainer.nativeElement;
+    const el = this._tracksContainer!.nativeElement;
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
       this.fetchNextTracksPage();
     }
@@ -118,6 +145,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.savedTracks = [...(this.savedTracks ?? []), ...page.items.map((item: any) => item.track as TrackObject)];
     this.savedTracksOffset += page.items.length;
     this.isFetchingTracks = false;
+    this.recomputeMislaidTracks();
   }
 
   /**
@@ -140,6 +168,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.trackFetchOffsets.set(playlistId, page.offset + page.items.length);
         if (page.offset + page.items.length >= page.total) {
           this.completedTrackFetches.add(playlistId);
+          this.recomputeMislaidTracks();
         }
       })
     ).subscribe({

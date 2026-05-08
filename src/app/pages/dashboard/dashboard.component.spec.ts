@@ -163,6 +163,82 @@ describe('DashboardComponent', () => {
     });
   });
 
+  describe('mislaidTracks', () => {
+    it('is empty when saved tracks are loaded but no playlists are selected', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+      expect(component.mislaidTracks).toEqual([]);
+    });
+
+    it('excludes saved tracks that appear in a selected playlist', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      spotifyService.getPlaylistPage.mockReturnValue(
+        of({ items: [], offset: 0, total: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+      component.playlistTracks.set(mockPlaylists[0].id, [{ id: mockTrackItem.track.id }]);
+      component.togglePlaylist(mockPlaylists[0]);
+      expect(component.mislaidTracks).toHaveLength(0);
+    });
+
+    it('deduplicates across multiple selected playlists', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      spotifyService.getPlaylistPage.mockReturnValue(
+        of({ items: [], offset: 0, total: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+      const sharedTrack = { id: mockTrackItem.track.id };
+      component.playlistTracks.set(mockPlaylists[0].id, [sharedTrack]);
+      component.playlistTracks.set(mockPlaylists[1].id, [sharedTrack]);
+      component.toggleAll();
+      expect(component.mislaidTracks).toHaveLength(0);
+    });
+
+    it('treats a selected playlist with no loaded tracks as empty', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      spotifyService.getPlaylistPage.mockReturnValue(
+        of({ items: [], offset: 0, total: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+      component.togglePlaylist(mockPlaylists[0]);
+      expect(component.mislaidTracks).toHaveLength(1);
+    });
+
+    it('skips playlist tracks that have no id', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      spotifyService.getPlaylistPage.mockReturnValue(
+        of({ items: [], offset: 0, total: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+      component.playlistTracks.set(mockPlaylists[0].id, [{ id: undefined }, { id: mockTrackItem.track.id }] as any[]);
+      component.togglePlaylist(mockPlaylists[0]);
+      expect(component.mislaidTracks).toHaveLength(0);
+    });
+
+    it('keeps saved tracks not present in any selected playlist', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      spotifyService.getPlaylistPage.mockReturnValue(
+        of({ items: [], offset: 0, total: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+      component.playlistTracks.set(mockPlaylists[0].id, [{ id: 'other-id' }]);
+      component.togglePlaylist(mockPlaylists[0]);
+      expect(component.mislaidTracks).toHaveLength(1);
+    });
+  });
+
   describe('allSelected', () => {
     it('is false when no playlists are selected', async () => {
       await setup(true, mockProfile, mockPlaylists);
@@ -320,6 +396,19 @@ describe('DashboardComponent', () => {
     });
   });
 
+  describe('tracksContainer setter', () => {
+    it('removes the scroll listener when the tracks container leaves the DOM', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.togglePlaylist(mockPlaylists[0]);
+      fixture.detectChanges();
+      const tracksEl = fixture.nativeElement.querySelector('.tracks');
+      const removeSpy = jest.spyOn(tracksEl, 'removeEventListener');
+      component.togglePlaylist(mockPlaylists[0]); // deselect → element leaves DOM
+      fixture.detectChanges();
+      expect(removeSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
+    });
+  });
+
   describe('ngOnDestroy()', () => {
     it('unsubscribes all active fetches', async () => {
       await setup(true, mockProfile, mockPlaylists);
@@ -381,6 +470,8 @@ describe('DashboardComponent', () => {
         of({ items: [mockTrackItem], total: 100, offset: 0 })
       );
       await setup(true, mockProfile, mockPlaylists);
+      component.togglePlaylist(mockPlaylists[0]);
+      fixture.detectChanges();
       const tracksEl = fixture.nativeElement.querySelector('.tracks');
       nearBottom(tracksEl);
       tracksEl.dispatchEvent(new Event('scroll'));
@@ -393,6 +484,8 @@ describe('DashboardComponent', () => {
         of({ items: [mockTrackItem], total: 100, offset: 0 })
       );
       await setup(true, mockProfile, mockPlaylists);
+      component.togglePlaylist(mockPlaylists[0]);
+      fixture.detectChanges();
       const tracksEl = fixture.nativeElement.querySelector('.tracks');
       farFromBottom(tracksEl);
       tracksEl.dispatchEvent(new Event('scroll'));
@@ -404,6 +497,8 @@ describe('DashboardComponent', () => {
       spotifyService.getSavedTracksPage.mockReturnValue(subject.asObservable());
       await setup(true, mockProfile, mockPlaylists);
 
+      component.togglePlaylist(mockPlaylists[0]);
+      fixture.detectChanges();
       const tracksEl = fixture.nativeElement.querySelector('.tracks');
       nearBottom(tracksEl);
       tracksEl.dispatchEvent(new Event('scroll'));
@@ -417,6 +512,8 @@ describe('DashboardComponent', () => {
       );
       await setup(true, mockProfile, mockPlaylists);
 
+      component.togglePlaylist(mockPlaylists[0]);
+      fixture.detectChanges();
       const tracksEl = fixture.nativeElement.querySelector('.tracks');
       nearBottom(tracksEl);
       tracksEl.dispatchEvent(new Event('scroll'));
@@ -426,9 +523,6 @@ describe('DashboardComponent', () => {
 
     it('does not fetch before authentication completes', async () => {
       await setup(false);
-      const tracksEl = fixture.nativeElement.querySelector('.tracks');
-      nearBottom(tracksEl);
-      tracksEl.dispatchEvent(new Event('scroll'));
       expect(spotifyService.getSavedTracksPage).not.toHaveBeenCalled();
     });
   });

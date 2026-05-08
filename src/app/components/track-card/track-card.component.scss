@@ -19,6 +19,10 @@
 
       .track-info {
         @apply flex flex-col;
+
+        .artists {
+          @apply text-white/60;
+        }
       }
     }
 
