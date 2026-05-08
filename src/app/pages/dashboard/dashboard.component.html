@@ -28,6 +28,7 @@
 
           <div class="playlist-grid p-4">
             <ng-container *ngIf="playlists; else playlistSkeletons">
+              <all-playlists-card [selected]="allSelected" (hasClicked)="toggleAll()"></all-playlists-card>
               <playlist-card *ngFor="let playlist of playlists" [playlist]="playlist"
                 [class.selected]="selectedPlaylistIds.has(playlist.id)"
                 (hasClicked)="togglePlaylist($event)"></playlist-card>

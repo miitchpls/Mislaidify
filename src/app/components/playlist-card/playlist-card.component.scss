@@ -1,7 +1,7 @@
 @reference '../../../styles.css';
 
 :host(.selected) .playlist-card {
-  @apply brightness-100 outline-4 outline-primary;
+  @apply brightness-100 ring-4 ring-primary;
 }
 
 .playlist-card {

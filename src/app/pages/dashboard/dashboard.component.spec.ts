@@ -136,11 +136,73 @@ describe('DashboardComponent', () => {
       expect(fixture.nativeElement.querySelector('playlist-card')).toBeNull();
     });
 
-    it('shows playlist cards and no skeletons when playlists are loaded', async () => {
+    it('shows all-playlists-card and playlist cards when playlists are loaded', async () => {
       await setup(true, mockProfile, mockPlaylists);
+      expect(fixture.nativeElement.querySelector('all-playlists-card')).toBeTruthy();
       const cards = fixture.nativeElement.querySelectorAll('playlist-card');
       expect(cards.length).toBe(mockPlaylists.length);
       expect(fixture.nativeElement.querySelector('playlist-card-skeleton')).toBeNull();
+    });
+
+    it('does not show all-playlists-card when playlists are not loaded', async () => {
+      await setup(false);
+      expect(fixture.nativeElement.querySelector('all-playlists-card')).toBeNull();
+    });
+  });
+
+  describe('allSelected', () => {
+    it('is false when no playlists are selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      expect(component.allSelected).toBe(false);
+    });
+
+    it('is false when only some playlists are selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedPlaylistIds.add(mockPlaylists[0].id);
+      expect(component.allSelected).toBe(false);
+    });
+
+    it('is true when all playlists are selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      mockPlaylists.forEach(p => component.selectedPlaylistIds.add(p.id));
+      expect(component.allSelected).toBe(true);
+    });
+  });
+
+  describe('toggleAll()', () => {
+    it('selects all playlists when none are selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.toggleAll();
+      expect(component.selectedPlaylistIds.size).toBe(mockPlaylists.length);
+    });
+
+    it('selects all playlists when some are selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedPlaylistIds.add(mockPlaylists[0].id);
+      component.toggleAll();
+      expect(component.selectedPlaylistIds.size).toBe(mockPlaylists.length);
+    });
+
+    it('deselects all playlists when all are selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      mockPlaylists.forEach(p => component.selectedPlaylistIds.add(p.id));
+      component.toggleAll();
+      expect(component.selectedPlaylistIds.size).toBe(0);
+    });
+  });
+
+  describe('togglePlaylist()', () => {
+    it('adds a playlist to the selection when not selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.togglePlaylist(mockPlaylists[0]);
+      expect(component.selectedPlaylistIds.has(mockPlaylists[0].id)).toBe(true);
+    });
+
+    it('removes a playlist from the selection when already selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedPlaylistIds.add(mockPlaylists[0].id);
+      component.togglePlaylist(mockPlaylists[0]);
+      expect(component.selectedPlaylistIds.has(mockPlaylists[0].id)).toBe(false);
     });
   });
 

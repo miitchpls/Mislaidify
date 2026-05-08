@@ -6,11 +6,13 @@ import { Router } from '@angular/router';
 import { CurrentUsersProfileResponse, PlaylistObjectSimplified } from '@models';
 import { SpotifyService } from '@services/spotify/spotify.service';
 import { PlaylistCardComponent } from '@components/playlist-card/playlist-card.component';
+import { AllPlaylistsCardComponent } from '@components/all-playlists-card/all-playlists-card.component';
 
 @Component({
   selector: 'app-dashboard',
   imports: [
     CommonModule,
+    AllPlaylistsCardComponent,
     PlaylistCardSkeletonComponent,
     PlaylistCardComponent,
     TrackCardSkeletonComponent
@@ -38,6 +40,18 @@ export class DashboardComponent implements OnInit {
       this.spotifyService.currentUser.profile() as unknown as Promise<CurrentUsersProfileResponse>,
       this.spotifyService.getPlaylists(),
     ]);
+  }
+
+  public get allSelected(): boolean {
+    return !!this.playlists?.length && this.selectedPlaylistIds.size === this.playlists.length;
+  }
+
+  public toggleAll(): void {
+    if (this.allSelected) {
+      this.selectedPlaylistIds.clear();
+    } else {
+      this.playlists!.forEach(p => this.selectedPlaylistIds.add(p.id));
+    }
   }
 
   public togglePlaylist(playlist: PlaylistObjectSimplified): void {
