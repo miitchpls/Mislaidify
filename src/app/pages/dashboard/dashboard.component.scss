@@ -113,7 +113,7 @@
 }
 
 .suggestion {
-  @apply flex justify-center items-center grow text-center cursor-default;
+  @apply flex justify-center items-start grow text-center cursor-default pt-12;
 
   div {
     @apply flex flex-col items-center gap-5;

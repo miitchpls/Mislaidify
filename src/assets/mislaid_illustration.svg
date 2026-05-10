@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 158" fill="none">
+  <defs>
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="0.85" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#12092e"/>
+      <stop offset="60%" stop-color="#2d1f7a"/>
+      <stop offset="100%" stop-color="#623cea"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card (rotated -10°) -->
+  <g transform="rotate(-10, 76, 84)">
+    <rect x="8" y="34" width="137" height="93" rx="14" fill="url(#cardGrad)"/>
+    <!-- Icon area: small square + lines -->
+    <rect x="24" y="49" width="14" height="14" rx="3" fill="white" opacity="0.35"/>
+    <rect x="44" y="52" width="38" height="5" rx="2.5" fill="white" opacity="0.30"/>
+    <rect x="44" y="60" width="28" height="5" rx="2.5" fill="white" opacity="0.25"/>
+    <!-- Track bars -->
+    <rect x="24" y="78" width="87" height="9" rx="4.5" fill="white" opacity="0.85"/>
+    <rect x="24" y="93" width="63" height="9" rx="4.5" fill="white" opacity="0.55"/>
+    <rect x="24" y="108" width="75" height="9" rx="4.5" fill="white" opacity="0.35"/>
+  </g>
+
+  <!-- Magnifying glass handle (below circle) -->
+  <line x1="157" y1="101" x2="184" y2="131" stroke="#ddff5b" stroke-width="13" stroke-linecap="round"/>
+
+  <!-- Magnifying glass lens fill (dark tinted) -->
+  <circle cx="130" cy="72" r="37" fill="#18103d" opacity="0.72"/>
+  <!-- Magnifying glass ring -->
+  <circle cx="130" cy="72" r="37" stroke="#ddff5b" stroke-width="11"/>
+
+  <!-- Sparkle top-right: large, violet -->
+  <path d="M 194.5,13 Q 196.3,22.7 205.5,24.5 Q 196.3,26.3 194.5,36 Q 192.7,26.3 183.5,24.5 Q 192.7,22.7 194.5,13 Z" fill="#7a55ee"/>
+  <!-- Sparkle top-left: small, light violet -->
+  <path d="M 45.3,14 Q 46.5,20.2 52.3,21.3 Q 46.5,22.4 45.3,28.6 Q 44.1,22.4 38.3,21.3 Q 44.1,20.2 45.3,14 Z" fill="#a088ff"/>
+  <!-- Sparkle right: tiny, primary purple -->
+  <path d="M 199,111 Q 199.8,115.2 204,116 Q 199.8,116.8 199,121 Q 198.2,116.8 194,116 Q 198.2,115.2 199,111 Z" fill="#623cea"/>
+</svg>

@@ -40,7 +40,7 @@
         </div>
 
         <div class="column">
-          <div class="title">Mislaid tracks</div>
+          <div class="title">Mislaid Tracks</div>
 
           <ng-container [ngSwitch]="selectedPlaylistIds.size !== 0">
             <div class="tracks-wrapper" *ngSwitchCase="true">
@@ -56,6 +56,7 @@
 
             <div class="suggestion" *ngSwitchDefault>
               <div>
+                <img src="assets/mislaid_illustration.svg" alt="" aria-hidden="true" class="w-64 mb-2" />
                 <div class="main-info">
                   <p><span>Select playlists</span> to find songs not in them yet.</p>
                 </div>
