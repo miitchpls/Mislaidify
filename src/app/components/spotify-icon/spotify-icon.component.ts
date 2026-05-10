@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 
 @Component({
   selector: 'spotify-icon',
@@ -13,4 +13,8 @@ import { Component } from '@angular/core';
     svg { width: 1.25rem; height: 1.25rem; fill: currentColor; }
   `
 })
-export class SpotifyIconComponent {}
+export class SpotifyIconComponent {
+  @HostBinding('class')
+  @Input()
+  class = '';
+}

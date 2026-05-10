@@ -47,3 +47,7 @@ body {
   0%, 100% { background-color: var(--color-primary-surface); }
   50% { background-color: var(--color-primary-surface-highlight); }
 }
+
+button {
+  @apply px-7 py-3 cursor-pointer rounded-3xl flex items-center gap-3;
+}
