@@ -9,6 +9,7 @@ import { SpotifyService } from '@services/spotify/spotify.service';
 import { PlaylistCardComponent } from '@components/playlist-card/playlist-card.component';
 import { AllPlaylistsCardComponent } from '@components/all-playlists-card/all-playlists-card.component';
 import { EMPTY, Subscription, expand, lastValueFrom, tap } from 'rxjs';
+import { AddTrackToPlaylistIconComponent } from '@components/add-track-to-playlist-icon/add-track-to-playlist-icon.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,6 +20,7 @@ import { EMPTY, Subscription, expand, lastValueFrom, tap } from 'rxjs';
     PlaylistCardComponent,
     TrackCardSkeletonComponent,
     TrackCardComponent,
+    AddTrackToPlaylistIconComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -32,6 +34,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public playlistTracks = new Map<string, any[]>();
   public savedTracks?: TrackObject[];
   public mislaidTracks?: TrackObject[];
+
+  public selectedTrackIds = new Set<string>();
 
   private trackFetchOffsets = new Map<string, number>();
   private trackFetchSubscriptions = new Map<string, Subscription>();
@@ -84,6 +88,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return !!this.playlists?.length && this.selectedPlaylistIds.size === this.playlists.length;
   }
 
+  public get hasSelectedTracks(): boolean {
+    return this.selectedTrackIds.size > 0;
+  }
+
   /** Selects all if any playlist is unselected; deselects all only when every playlist is already selected. */
   public toggleAll(): void {
     if (this.allSelected) {
@@ -112,6 +120,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public logout(): void {
     this.spotifyService.logout();
     this.router.navigateByUrl('');
+  }
+
+  public onTrackSelectionChange(track: TrackObject, selected: boolean): void {
+    if (selected) this.selectedTrackIds.add(track.id);
+    else this.selectedTrackIds.delete(track.id);
   }
 
   private recomputeMislaidTracks(): void {

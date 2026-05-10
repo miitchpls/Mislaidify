@@ -81,8 +81,8 @@ describe('DashboardComponent', () => {
 
     it('keeps only playlists owned by the current user', async () => {
       const mixed = [
-        { id: '1', name: 'Mine', owner: { id: 'test-user' } },
-        { id: '2', name: 'Followed', owner: { id: 'someone-else' } },
+        { id: '1', name: 'Mine', images: [{ url: 'https://example.com/1.jpg' }], owner: { id: 'test-user' } },
+        { id: '2', name: 'Followed', images: [{ url: 'https://example.com/2.jpg' }], owner: { id: 'someone-else' } },
       ];
       await setup(true, mockProfile, mixed as any[]);
       expect(component.playlists).toHaveLength(1);
@@ -253,6 +253,17 @@ describe('DashboardComponent', () => {
       await setup(true, mockProfile, mockPlaylists);
       component.playlistTracks.set(mockPlaylists[0].id, [{ id: 'other-id' }]);
       component.togglePlaylist(mockPlaylists[0]);
+      expect(component.mislaidTracks).toHaveLength(1);
+    });
+
+    it('falls back to empty array when completedTrackFetches has an id not in playlistTracks', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedPlaylistIds.add(mockPlaylists[0].id);
+      (component as any).completedTrackFetches.add(mockPlaylists[0].id);
+      (component as any).recomputeMislaidTracks();
       expect(component.mislaidTracks).toHaveLength(1);
     });
   });
@@ -438,6 +449,34 @@ describe('DashboardComponent', () => {
       subject.next({ items: [{ track: { id: 't1' } }], offset: 0 });
 
       expect(component.playlistTracks.get(mockPlaylists[0].id) ?? []).toHaveLength(0);
+    });
+  });
+
+  describe('hasSelectedTracks', () => {
+    it('is false when no tracks are selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      expect(component.hasSelectedTracks).toBe(false);
+    });
+
+    it('is true when at least one track is selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedTrackIds.add('t1');
+      expect(component.hasSelectedTracks).toBe(true);
+    });
+  });
+
+  describe('onTrackSelectionChange()', () => {
+    it('adds track id to selectedTrackIds when selected is true', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.onTrackSelectionChange(mockTrackItem.track, true);
+      expect(component.selectedTrackIds.has(mockTrackItem.track.id)).toBe(true);
+    });
+
+    it('removes track id from selectedTrackIds when selected is false', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+      component.onTrackSelectionChange(mockTrackItem.track, false);
+      expect(component.selectedTrackIds.has(mockTrackItem.track.id)).toBe(false);
     });
   });
 

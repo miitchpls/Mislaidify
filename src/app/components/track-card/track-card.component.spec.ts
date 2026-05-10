@@ -35,6 +35,25 @@ describe('TrackCardComponent', () => {
       component.toggleCard(false);
       expect(component.selected).toBe(false);
     });
+
+    it('emits selectionChange with the new value', () => {
+      const emitted: boolean[] = [];
+      component.selectionChange.subscribe((v: boolean) => emitted.push(v));
+
+      component.toggleCard(true);
+      component.toggleCard(false);
+
+      expect(emitted).toEqual([true, false]);
+    });
+
+    it('emits selectionChange after updating selected', () => {
+      let selectedAtEmit: boolean | undefined;
+      component.selectionChange.subscribe(() => { selectedAtEmit = component.selected; });
+
+      component.toggleCard(true);
+
+      expect(selectedAtEmit).toBe(true);
+    });
   });
 
   describe('albumCover', () => {

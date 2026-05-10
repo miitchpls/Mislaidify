@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TrackObject } from '../../models';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 
@@ -11,6 +11,8 @@ import { CheckboxComponent } from '../checkbox/checkbox.component';
 })
 export class TrackCardComponent {
   @Input() track!: TrackObject;
+  
+  @Output() selectionChange = new EventEmitter<boolean>();
 
   public selected: boolean = false;
 
@@ -28,5 +30,6 @@ export class TrackCardComponent {
 
   public toggleCard(selected: boolean) {
     this.selected = selected;
+    this.selectionChange.emit(selected);
   }
 }

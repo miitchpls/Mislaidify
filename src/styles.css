@@ -33,6 +33,10 @@ body {
   @apply bg-primary-variant;
 }
 
+@utility glow-secondary {
+  box-shadow: 0 0 16px 4px color-mix(in srgb, var(--color-secondary) 60%, transparent);
+}
+
 @utility bg-app-background {
   background-image: url('/assets/hero_background.svg');
   background-size: cover;
