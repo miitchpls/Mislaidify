@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { TrackObject } from '../../models';
-import { CheckboxComponent } from '../checkbox/checkbox.component';
+import { TrackObject } from '@models/spotify';
+import { CheckboxComponent } from '@components/checkbox/checkbox.component';
+import { TooltipDirective } from '@directives/tooltip/tooltip.directive';
 
 @Component({
   selector: 'track-card',
-  imports: [CommonModule, CheckboxComponent],
+  imports: [CommonModule, CheckboxComponent, TooltipDirective],
   templateUrl: './track-card.component.html',
   styleUrl: './track-card.component.scss',
 })

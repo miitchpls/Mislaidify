@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { PlaylistObjectSimplified } from '@models';
+import { PlaylistObjectSimplified } from '@models/spotify';
 
 @Component({
   selector: 'playlist-card',

@@ -18,10 +18,10 @@
       }
 
       .track-info {
-        @apply flex flex-col;
+        @apply flex flex-col min-w-0;
 
         .artists {
-          @apply text-white/60;
+          @apply text-white/60 truncate;
         }
       }
     }
@@ -31,14 +31,6 @@
 
       * {
         @apply w-8 h-8;
-      }
-
-      .add-to-playlist {
-        @apply flex items-center justify-center bg-primary rounded-full;
-
-        svg {
-          @apply w-4 h-4 fill-white;
-        }
       }
 
       .open-on-spotify {

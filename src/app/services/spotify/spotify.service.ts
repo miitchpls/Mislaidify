@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AuthenticationResponse, SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { environment } from '@environments/environment';
-import { PlaylistObjectSimplified } from '@models';
+import { PlaylistObjectSimplified } from '@models/spotify';
 import { defer, expand, EMPTY, concatMap, toArray, lastValueFrom, Observable, retry, timer, throwError } from 'rxjs';
 
 @Injectable({

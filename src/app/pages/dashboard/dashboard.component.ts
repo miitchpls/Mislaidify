@@ -4,7 +4,7 @@ import { PlaylistCardSkeletonComponent } from '@components/playlist-card-skeleto
 import { TrackCardSkeletonComponent } from '@components/track-card-skeleton/track-card-skeleton.component';
 import { TrackCardComponent } from '@components/track-card/track-card.component';
 import { Router } from '@angular/router';
-import { CurrentUsersProfileResponse, PlaylistObjectSimplified, TrackObject } from '@models';
+import { CurrentUsersProfileResponse, PlaylistObjectSimplified, TrackObject } from '@models/spotify';
 import { SpotifyService } from '@services/spotify/spotify.service';
 import { PlaylistCardComponent } from '@components/playlist-card/playlist-card.component';
 import { AllPlaylistsCardComponent } from '@components/all-playlists-card/all-playlists-card.component';
