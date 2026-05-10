@@ -1,7 +1,7 @@
 @reference '../../../styles.css';
 
 input {
-  @apply float-left w-4.5 h-4.5  mt-[0.15rem] appearance-none rounded-sm 
+  @apply relative float-left w-4.5 h-4.5 mt-[0.15rem] appearance-none rounded-sm
   border-2 outline-none rtl:float-right;
 
   @apply checked:border-primary checked:bg-primary  checked:after:absolute checked:after:-mt-px 

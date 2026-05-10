@@ -55,7 +55,8 @@
               </div>
 
               <button *ngIf="hasSelectedTracks"
-                class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 text-primary bg-secondary font-bold uppercase truncate glow-secondary">
+                class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 text-primary bg-secondary font-bold uppercase truncate glow-secondary"
+                (click)="openAddToPlaylistModal()">
                 <add-track-to-playlist-icon />
                 Add to playlist
               </button>
@@ -70,7 +71,7 @@
                 </div>
                 <div class="sub-info">
                   <p>We compare your saved songs with the playlist you select and show you the ones that haven't been
-                  added.</p>
+                    added.</p>
                 </div>
               </div>
             </div>
@@ -79,4 +80,13 @@
       </div>
     </div>
   </div>
+
+  <add-to-playlist-modal
+    *ngIf="showModal"
+    [selectedTrackIds]="selectedTrackIds"
+    [playlists]="selectedPlaylistList"
+    [isAddingTracks]="isAddingTracks"
+    (close)="showModal = false"
+    (confirm)="confirmAddTracks($event)">
+  </add-to-playlist-modal>
 </div>

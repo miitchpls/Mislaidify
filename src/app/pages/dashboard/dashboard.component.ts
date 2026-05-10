@@ -10,6 +10,7 @@ import { PlaylistCardComponent } from '@components/playlist-card/playlist-card.c
 import { AllPlaylistsCardComponent } from '@components/all-playlists-card/all-playlists-card.component';
 import { EMPTY, Subscription, expand, lastValueFrom, tap } from 'rxjs';
 import { AddTrackToPlaylistIconComponent } from '@components/add-track-to-playlist-icon/add-track-to-playlist-icon.component';
+import { AddToPlaylistModalComponent } from '@components/add-to-playlist-modal/add-to-playlist-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,6 +22,7 @@ import { AddTrackToPlaylistIconComponent } from '@components/add-track-to-playli
     TrackCardSkeletonComponent,
     TrackCardComponent,
     AddTrackToPlaylistIconComponent,
+    AddToPlaylistModalComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -36,6 +38,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public mislaidTracks?: TrackObject[];
 
   public selectedTrackIds = new Set<string>();
+  public showModal = false;
+  public isAddingTracks = false;
 
   private trackFetchOffsets = new Map<string, number>();
   private trackFetchSubscriptions = new Map<string, Subscription>();
@@ -92,6 +96,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return this.selectedTrackIds.size > 0;
   }
 
+  public get selectedPlaylistList(): PlaylistObjectSimplified[] {
+    return this.playlists?.filter(p => this.selectedPlaylistIds.has(p.id)) ?? [];
+  }
+
   /** Selects all if any playlist is unselected; deselects all only when every playlist is already selected. */
   public toggleAll(): void {
     if (this.allSelected) {
@@ -104,6 +112,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
       });
     }
+    this.selectedTrackIds.clear();
     this.recomputeMislaidTracks();
   }
 
@@ -114,6 +123,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.selectedPlaylistIds.add(playlist.id);
       this.startTrackFetch(playlist.id);
     }
+    this.selectedTrackIds.clear();
     this.recomputeMislaidTracks();
   }
 
@@ -125,6 +135,36 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public onTrackSelectionChange(track: TrackObject, selected: boolean): void {
     if (selected) this.selectedTrackIds.add(track.id);
     else this.selectedTrackIds.delete(track.id);
+  }
+
+  public openAddToPlaylistModal(): void {
+    this.showModal = true;
+  }
+
+  /**
+   * Adds the selected mislaid tracks to each target playlist, then updates local state so the
+   * UI reflects the change without a full recompute: the added tracks are appended to each
+   * playlist's cache (so they won't reappear as mislaid) and removed from the mislaid list.
+   */
+  public async confirmAddTracks(playlistIds: string[]): Promise<void> {
+    if (!playlistIds.length) return;
+
+    const trackUris = [...this.selectedTrackIds].map(id => `spotify:track:${id}`);
+
+    this.isAddingTracks = true;
+    try {
+      await Promise.all(playlistIds.map(pid => this.spotifyService.addTracksToPlaylist(pid, trackUris)));
+
+      const tracksToAdd = this.mislaidTracks?.filter(t => this.selectedTrackIds.has(t.id)) ?? [];
+      this.mislaidTracks = this.mislaidTracks?.filter(t => !this.selectedTrackIds.has(t.id));
+      for (const pid of playlistIds) {
+        this.playlistTracks.set(pid, [...(this.playlistTracks.get(pid) ?? []), ...tracksToAdd]);
+      }
+      this.selectedTrackIds.clear();
+      this.showModal = false;
+    } finally {
+      this.isAddingTracks = false;
+    }
   }
 
   private recomputeMislaidTracks(): void {
@@ -143,11 +183,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     }
     this.mislaidTracks = this.savedTracks.filter(t => !playlistTrackIds.has(t.id));
+
+    // After Angular renders the new list, load more if the container isn't filled yet
+    setTimeout(() => this.fetchIfNotFilled());
   }
 
   private fetchIfNearBottom(): void {
     const el = this._tracksContainer!.nativeElement;
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+      this.fetchNextTracksPage();
+    }
+  }
+
+  private fetchIfNotFilled(): void {
+    if (!this._tracksContainer || this.savedTracksOffset >= this.savedTracksTotal) return;
+    const el = this._tracksContainer.nativeElement;
+    if (el.scrollHeight <= el.clientHeight) {
       this.fetchNextTracksPage();
     }
   }

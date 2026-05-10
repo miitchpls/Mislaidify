@@ -14,7 +14,6 @@ export class CheckboxComponent {
   @Output() hasChecked = new EventEmitter<boolean>();
 
   public toggle(): void {
-    this.checked = !this.checked;
-    this.hasChecked.emit(this.checked);
+    this.hasChecked.emit(!this.checked);
   }
 }

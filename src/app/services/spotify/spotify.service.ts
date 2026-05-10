@@ -19,6 +19,8 @@ export class SpotifyService {
         'user-read-private', // Get Current User's Profile
         'playlist-read-private', // Get Current User's Playlists
         'user-library-read', // Get User's Saved Tracks
+        'playlist-modify-public', // Add tracks to public playlists
+        'playlist-modify-private', // Add tracks to private playlists
       ]
     );
   }
@@ -71,6 +73,10 @@ export class SpotifyService {
     return source.pipe(
       retry({ delay: err => err.message?.includes('rate limits') ? timer(5000) : throwError(() => err) })
     );
+  }
+
+  public addTracksToPlaylist(playlistId: string, trackUris: string[]): Promise<void> {
+    return this.api.playlists.addItemsToPlaylist(playlistId, trackUris) as unknown as Promise<void>;
   }
 
   public get currentUser() {

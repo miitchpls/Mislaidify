@@ -18,7 +18,7 @@ const mockPlaylists = [
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
-  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate' | 'logout' | 'getPlaylists' | 'getPlaylistPage' | 'getSavedTracksPage'>> & {
+  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate' | 'logout' | 'getPlaylists' | 'getPlaylistPage' | 'getSavedTracksPage' | 'addTracksToPlaylist'>> & {
     currentUser: { profile: jest.Mock };
   };
   let router: Router;
@@ -51,6 +51,7 @@ describe('DashboardComponent', () => {
       getPlaylists: jest.fn(),
       getPlaylistPage: jest.fn().mockReturnValue(EMPTY),
       getSavedTracksPage: jest.fn().mockReturnValue(of({ items: [], total: 0, offset: 0 })),
+      addTracksToPlaylist: jest.fn().mockResolvedValue(undefined),
       currentUser: { profile: jest.fn() } as any,
     };
 
@@ -256,6 +257,25 @@ describe('DashboardComponent', () => {
       expect(component.mislaidTracks).toHaveLength(1);
     });
 
+    it('clears selectedTrackIds when the playlist selection changes', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      spotifyService.getPlaylistPage.mockReturnValue(
+        of({ items: [], offset: 0, total: 0 })
+      );
+
+      await setup(true, mockProfile, mockPlaylists);
+
+      component.togglePlaylist(mockPlaylists[0]);
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+      expect(component.selectedTrackIds.size).toBe(1);
+
+      component.togglePlaylist(mockPlaylists[1]);
+
+      expect(component.selectedTrackIds.size).toBe(0);
+    });
+
     it('falls back to empty array when completedTrackFetches has an id not in playlistTracks', async () => {
       spotifyService.getSavedTracksPage.mockReturnValue(
         of({ items: [mockTrackItem], total: 1, offset: 0 })
@@ -306,6 +326,13 @@ describe('DashboardComponent', () => {
       mockPlaylists.forEach(p => component.selectedPlaylistIds.add(p.id));
       component.toggleAll();
       expect(component.selectedPlaylistIds.size).toBe(0);
+    });
+
+    it('clears selectedTrackIds when playlist selection changes via toggleAll', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedTrackIds.add('t1');
+      component.toggleAll();
+      expect(component.selectedTrackIds.size).toBe(0);
     });
   });
 
@@ -465,6 +492,24 @@ describe('DashboardComponent', () => {
     });
   });
 
+  describe('selectedPlaylistList', () => {
+    it('returns empty array when no playlists are selected', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      expect(component.selectedPlaylistList).toEqual([]);
+    });
+
+    it('returns only the selected playlists', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedPlaylistIds.add(mockPlaylists[0].id);
+      expect(component.selectedPlaylistList).toEqual([mockPlaylists[0]]);
+    });
+
+    it('returns empty array when playlists is undefined', async () => {
+      await setup(false);
+      expect(component.selectedPlaylistList).toEqual([]);
+    });
+  });
+
   describe('onTrackSelectionChange()', () => {
     it('adds track id to selectedTrackIds when selected is true', async () => {
       await setup(true, mockProfile, mockPlaylists);
@@ -477,6 +522,127 @@ describe('DashboardComponent', () => {
       component.selectedTrackIds.add(mockTrackItem.track.id);
       component.onTrackSelectionChange(mockTrackItem.track, false);
       expect(component.selectedTrackIds.has(mockTrackItem.track.id)).toBe(false);
+    });
+  });
+
+  describe('openAddToPlaylistModal()', () => {
+    it('sets showModal to true', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.openAddToPlaylistModal();
+      expect(component.showModal).toBe(true);
+    });
+  });
+
+  describe('confirmAddTracks()', () => {
+    beforeEach(async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      spotifyService.getPlaylistPage.mockReturnValue(
+        of({ items: [], offset: 0, total: 0 })
+      );
+    });
+
+    it('calls addTracksToPlaylist with correct playlist id and track uris', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+
+      await component.confirmAddTracks([mockPlaylists[0].id]);
+
+      expect(spotifyService.addTracksToPlaylist).toHaveBeenCalledWith(
+        mockPlaylists[0].id,
+        [`spotify:track:${mockTrackItem.track.id}`]
+      );
+    });
+
+    it('calls addTracksToPlaylist for each target playlist id', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+
+      await component.confirmAddTracks(mockPlaylists.map(p => p.id));
+
+      expect(spotifyService.addTracksToPlaylist).toHaveBeenCalledTimes(mockPlaylists.length);
+    });
+
+    it('removes added tracks from mislaidTracks', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.mislaidTracks = [mockTrackItem.track];
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+
+      await component.confirmAddTracks([mockPlaylists[0].id]);
+
+      expect(component.mislaidTracks).toHaveLength(0);
+    });
+
+    it('pushes selected tracks into playlistTracks for each target', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.mislaidTracks = [mockTrackItem.track];
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+
+      await component.confirmAddTracks([mockPlaylists[0].id]);
+
+      expect(component.playlistTracks.get(mockPlaylists[0].id)).toContainEqual(mockTrackItem.track);
+    });
+
+    it('clears selectedTrackIds after success', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.mislaidTracks = [mockTrackItem.track];
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+
+      await component.confirmAddTracks([mockPlaylists[0].id]);
+
+      expect(component.selectedTrackIds.size).toBe(0);
+    });
+
+    it('closes the modal after success', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.mislaidTracks = [mockTrackItem.track];
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+      component.showModal = true;
+
+      await component.confirmAddTracks([mockPlaylists[0].id]);
+
+      expect(component.showModal).toBe(false);
+    });
+
+    it('handles undefined mislaidTracks gracefully', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.mislaidTracks = undefined;
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+
+      await component.confirmAddTracks([mockPlaylists[0].id]);
+
+      expect(component.mislaidTracks).toBeUndefined();
+    });
+
+    it('does nothing when targetIds is empty', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+
+      await component.confirmAddTracks([]);
+
+      expect(spotifyService.addTracksToPlaylist).not.toHaveBeenCalled();
+    });
+
+    it('resets isAddingTracks to false after success', async () => {
+      await setup(true, mockProfile, mockPlaylists);
+      component.mislaidTracks = [mockTrackItem.track];
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+
+      await component.confirmAddTracks([mockPlaylists[0].id]);
+
+      expect(component.isAddingTracks).toBe(false);
+    });
+
+    it('resets isAddingTracks to false even when the API call fails', async () => {
+      spotifyService.addTracksToPlaylist.mockRejectedValue(new Error('API error'));
+      await setup(true, mockProfile, mockPlaylists);
+      component.mislaidTracks = [mockTrackItem.track];
+      component.selectedTrackIds.add(mockTrackItem.track.id);
+
+      await expect(component.confirmAddTracks([mockPlaylists[0].id])).rejects.toThrow('API error');
+
+      expect(component.isAddingTracks).toBe(false);
     });
   });
 
@@ -581,6 +747,76 @@ describe('DashboardComponent', () => {
     it('does not fetch before authentication completes', async () => {
       await setup(false);
       expect(spotifyService.getSavedTracksPage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('fill-on-load track fetching', () => {
+    // Sets up an underfilled container (content shorter than viewport)
+    const makeUnderfilled = (el: HTMLElement) => {
+      Object.defineProperty(el, 'scrollHeight', { get: () => 200, configurable: true });
+      Object.defineProperty(el, 'clientHeight', { get: () => 600, configurable: true });
+    };
+
+    const makeFilled = (el: HTMLElement) => {
+      Object.defineProperty(el, 'scrollHeight', { get: () => 1000, configurable: true });
+      Object.defineProperty(el, 'clientHeight', { get: () => 600, configurable: true });
+    };
+
+    it('fetches the next page when mislaid tracks do not fill the container', async () => {
+      // First page has 1 track (total 100). Second page marks everything as loaded (total 1).
+      spotifyService.getSavedTracksPage
+        .mockReturnValueOnce(of({ items: [mockTrackItem], total: 100, offset: 0 }))
+        .mockReturnValue(of({ items: [], total: 1, offset: 0 }));
+      spotifyService.getPlaylistPage.mockReturnValue(of({ items: [], offset: 0, total: 0 }));
+
+      await setup(true, mockProfile, mockPlaylists);
+      component.togglePlaylist(mockPlaylists[0]);
+      fixture.detectChanges();
+
+      // Mock underfilled BEFORE the queued setTimeout fires
+      const tracksEl = fixture.nativeElement.querySelector('.tracks');
+      makeUnderfilled(tracksEl);
+
+      // One flush: fires the component's setTimeout, then resolves after async fetchNextTracksPage
+      await flushPromises();
+
+      expect(spotifyService.getSavedTracksPage).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not fetch again when the container is already filled', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 100, offset: 0 })
+      );
+      spotifyService.getPlaylistPage.mockReturnValue(of({ items: [], offset: 0, total: 0 }));
+
+      await setup(true, mockProfile, mockPlaylists);
+      component.togglePlaylist(mockPlaylists[0]);
+      fixture.detectChanges();
+
+      const tracksEl = fixture.nativeElement.querySelector('.tracks');
+      makeFilled(tracksEl);
+
+      await flushPromises();
+
+      expect(spotifyService.getSavedTracksPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch when all saved tracks are already loaded', async () => {
+      spotifyService.getSavedTracksPage.mockReturnValue(
+        of({ items: [mockTrackItem], total: 1, offset: 0 })
+      );
+      spotifyService.getPlaylistPage.mockReturnValue(of({ items: [], offset: 0, total: 0 }));
+
+      await setup(true, mockProfile, mockPlaylists);
+      component.togglePlaylist(mockPlaylists[0]);
+      fixture.detectChanges();
+
+      const tracksEl = fixture.nativeElement.querySelector('.tracks');
+      makeUnderfilled(tracksEl);
+
+      await flushPromises();
+
+      expect(spotifyService.getSavedTracksPage).toHaveBeenCalledTimes(1);
     });
   });
 });

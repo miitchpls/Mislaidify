@@ -9,7 +9,7 @@ let mockApi: {
   getAccessToken: jest.Mock;
   logOut: jest.Mock;
   currentUser: { profile: jest.Mock; playlists: { playlists: jest.Mock }; tracks: { savedTracks: jest.Mock } };
-  playlists: { getPlaylistItems: jest.Mock };
+  playlists: { getPlaylistItems: jest.Mock; addItemsToPlaylist: jest.Mock };
 };
 
 jest.mock('@spotify/web-api-ts-sdk', () => ({
@@ -27,7 +27,7 @@ describe('SpotifyService', () => {
       getAccessToken: jest.fn(),
       logOut: jest.fn(),
       currentUser: { profile: jest.fn(), playlists: { playlists: jest.fn() }, tracks: { savedTracks: jest.fn() } },
-      playlists: { getPlaylistItems: jest.fn() },
+      playlists: { getPlaylistItems: jest.fn(), addItemsToPlaylist: jest.fn() },
     };
     TestBed.configureTestingModule({});
     service = TestBed.inject(SpotifyService);
@@ -46,7 +46,7 @@ describe('SpotifyService', () => {
     expect(SpotifyApi.withUserAuthorization).toHaveBeenCalledWith(
       environment.clientId,
       environment.redirectUrl,
-      ['user-read-private', 'playlist-read-private', 'user-library-read']
+      ['user-read-private', 'playlist-read-private', 'user-library-read', 'playlist-modify-public', 'playlist-modify-private']
     );
   });
 
@@ -129,6 +129,25 @@ describe('SpotifyService', () => {
       mockApi.playlists.getPlaylistItems.mockResolvedValue(page);
       const result = await lastValueFrom(service.getPlaylistPage('pl1', 0));
       expect(result).toBe(page);
+    });
+  });
+
+  describe('addTracksToPlaylist()', () => {
+    it('calls addItemsToPlaylist with the given playlist id and track uris', async () => {
+      mockApi.playlists.addItemsToPlaylist.mockResolvedValue(undefined);
+      await service.addTracksToPlaylist('pl1', ['spotify:track:a', 'spotify:track:b']);
+      expect(mockApi.playlists.addItemsToPlaylist).toHaveBeenCalledWith('pl1', ['spotify:track:a', 'spotify:track:b']);
+    });
+
+    it('returns the resolved value from the SDK', async () => {
+      mockApi.playlists.addItemsToPlaylist.mockResolvedValue(undefined);
+      const result = await service.addTracksToPlaylist('pl1', ['spotify:track:a']);
+      expect(result).toBeUndefined();
+    });
+
+    it('propagates errors thrown by the SDK', async () => {
+      mockApi.playlists.addItemsToPlaylist.mockRejectedValue(new Error('Forbidden'));
+      await expect(service.addTracksToPlaylist('pl1', ['spotify:track:a'])).rejects.toThrow('Forbidden');
     });
   });
 
