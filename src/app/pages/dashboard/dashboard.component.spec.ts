@@ -11,8 +11,8 @@ const mockProfile = {
 } as any;
 
 const mockPlaylists = [
-  { id: '1', name: 'Playlist 1', images: [{ url: 'https://example.com/1.jpg' }] },
-  { id: '2', name: 'Playlist 2', images: [{ url: 'https://example.com/2.jpg' }] },
+  { id: '1', name: 'Playlist 1', images: [{ url: 'https://example.com/1.jpg' }], owner: { id: 'test-user' } },
+  { id: '2', name: 'Playlist 2', images: [{ url: 'https://example.com/2.jpg' }], owner: { id: 'test-user' } },
 ] as any[];
 
 describe('DashboardComponent', () => {
@@ -76,7 +76,25 @@ describe('DashboardComponent', () => {
       expect(spotifyService.currentUser.profile).toHaveBeenCalledTimes(1);
       expect(spotifyService.getPlaylists).toHaveBeenCalledTimes(1);
       expect(component.userProfile).toBe(mockProfile);
-      expect(component.playlists).toBe(mockPlaylists);
+      expect(component.playlists).toEqual(mockPlaylists);
+    });
+
+    it('keeps only playlists owned by the current user', async () => {
+      const mixed = [
+        { id: '1', name: 'Mine', owner: { id: 'test-user' } },
+        { id: '2', name: 'Followed', owner: { id: 'someone-else' } },
+      ];
+      await setup(true, mockProfile, mixed as any[]);
+      expect(component.playlists).toHaveLength(1);
+      expect(component.playlists![0].id).toBe('1');
+    });
+
+    it('shows no playlists when none are owned by the current user', async () => {
+      const followed = [
+        { id: '1', name: 'Followed', owner: { id: 'someone-else' } },
+      ];
+      await setup(true, mockProfile, followed as any[]);
+      expect(component.playlists).toHaveLength(0);
     });
 
     it('does not load profile or playlists when not authenticated', async () => {

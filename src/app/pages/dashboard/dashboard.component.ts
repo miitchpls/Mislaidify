@@ -64,10 +64,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const { authenticated } = await this.spotifyService.authenticate();
     if (!authenticated) return;
 
-    [this.userProfile, this.playlists] = await Promise.all([
+    const [profile, playlists] = await Promise.all([
       this.spotifyService.currentUser.profile() as unknown as Promise<CurrentUsersProfileResponse>,
       this.spotifyService.getPlaylists(),
     ]);
+    this.userProfile = profile;
+    this.playlists = playlists.filter(p => p.owner?.id === profile.id);
 
     this.tracksEnabled = true;
     this.fetchNextTracksPage();
