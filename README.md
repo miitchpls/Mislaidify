@@ -8,6 +8,12 @@ The idea came from a personal habit: finding great songs while driving, saving t
 
 Built with Angular 19 and Tailwind CSS.
 
+## Screenshots
+
+![Hero page](src/assets/hero_page.jpg)
+
+![Dashboard](src/assets/dashboard_selection.jpg)
+
 ## Project history
 
 Originally started in May 2024, this project was refactored in May 2026.
@@ -16,7 +22,38 @@ This app will not be publicly released. Since Spotify restricted their API acces
 
 ## Getting started
 
-Install dependencies:
+### 1. Create a Spotify app
+
+Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in with your Spotify account.
+
+Click **Create app** and fill in the form:
+
+| Field | Value |
+|---|---|
+| App name | Mislaidify (or anything you prefer) |
+| App description | Any short description |
+| Website | Leave blank |
+| Redirect URIs | `http://127.0.0.1:4200/dashboard` |
+| Which API/SDKs are you planning to use? | Web API |
+
+Accept the terms and click **Save**.
+
+### 2. Copy your Client ID
+
+Open the app you just created and click **Settings**. Copy the **Client ID** shown at the top.
+
+### 3. Add the Client ID to the project
+
+Open `src/environments/environment.ts` and replace the existing `clientId` value with yours:
+
+```ts
+export const environment = {
+  clientId: 'your-client-id-here',
+  ...
+};
+```
+
+### 4. Install dependencies and run
 
 ```bash
 npm install
@@ -26,7 +63,7 @@ npm install
 
 | Command | Description |
 |---|---|
-| `npm start` | Starts the Angular dev server at `http://localhost:4200` |
+| `npm start` | Starts the Angular dev server at `http://127.0.0.1:4200` |
 | `npm run build` | Builds the app for production |
 | `npm run watch` | Builds in watch mode (development) |
 | `npm test` | Runs unit tests (single run) |
