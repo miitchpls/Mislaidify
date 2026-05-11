@@ -1,0 +1,20 @@
+<div class="track-card hover-surface-subtle" [ngClass]="{ selected: selected }">
+  <div class="overlay"></div>
+  <div class="content">
+    <div class="details" (click)="toggleCard(!selected)">
+      <checkbox [checked]="selected" (hasChecked)="toggleCard($event)"></checkbox>
+      <img class="album-cover" [src]="albumCover" [alt]="track.name" />
+      <div class="track-info">
+        <span>{{ track.name }}</span>
+        <span class="artists">{{ artistNames }}</span>
+      </div>
+    </div>
+    <div class="actions">
+      <a [href]="spotifyUrl" target="_blank" tooltip="Open on Spotify">
+        <svg class="open-on-spotify">
+          <use xlink:href="assets/spotify.svg#svg" href="assets/spotify.svg#svg"></use>
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>

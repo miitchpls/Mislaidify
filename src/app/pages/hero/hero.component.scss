@@ -1,11 +1,7 @@
-@reference '../../../styles.scss';
+@reference '../../../styles.css';
 
 .hero {
-  @apply px-4 py-6 sm:p-8 h-dvh overflow-hidden flex flex-col justify-between items-center text-white;
-
-  .background {
-    @apply absolute object-cover top-0 h-full w-full z-[-1];
-  }
+  @apply px-4 py-6 sm:p-8 h-dvh overflow-hidden flex flex-col justify-between items-center text-white bg-app-background;
 
   .header {
     @apply w-full;
@@ -41,11 +37,7 @@
       }
 
       .login-button {
-        @apply flex items-center gap-3 bg-spotify px-6 sm:px-7 py-2 font-semibold rounded-3xl uppercase text-sm sm:text-base;
-
-        svg {
-          @apply fill-white w-5 h-5;
-        }
+        @apply bg-spotify font-semibold uppercase;
       }
     }
   }

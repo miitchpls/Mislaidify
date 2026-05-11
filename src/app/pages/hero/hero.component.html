@@ -16,9 +16,8 @@
                 <span>Mislaidify</span> checks for you which of your saved songs are not
                 in any of your playlists.
             </div>
-            <button class="login-button" (click)="authService.redirectToSpotifyAuth()"> <svg>
-                    <use xlink:href="assets/spotify.svg#svg" href="assets/spotify.svg#svg"></use>
-                </svg>
+            <button class="login-button" (click)="login()">
+                <spotify-icon />
                 Continue on spotify
             </button>
         </div>
@@ -28,5 +27,4 @@
         <a href="https://github.com/miitchpls">© miitchpls</a>
     </div>
 
-    <img class="background" src="assets/hero_background.svg" />
 </div>

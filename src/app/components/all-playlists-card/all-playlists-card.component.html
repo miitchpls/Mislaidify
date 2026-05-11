@@ -1,0 +1,17 @@
+<div class="all-playlists-card" [ngClass]="{ selected }" (click)="toggle()">
+  <p class="text-lg font-bold z-10">All Playlists</p>
+  <svg>
+    <ng-container [ngSwitch]="selected">
+      <use
+        *ngSwitchDefault
+        xlink:href="assets/select_all_playlists.svg#svg"
+        href="assets/select_all_playlists.svg#svg"
+      ></use>
+      <use
+        *ngSwitchCase="true"
+        xlink:href="assets/deselect_all_playlists.svg#svg"
+        href="assets/deselect_all_playlists.svg#svg"
+      ></use>
+    </ng-container>
+  </svg>
+</div>

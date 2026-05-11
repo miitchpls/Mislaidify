@@ -1,3 +1,92 @@
-<div class="flex items-center justify-center h-screen">
-    <p class="text-white text-center">dashboard works!</p>
+<div class="dashboard">
+  <div class="header">
+    <img class="h-8" src="assets/logo.svg" alt="Mislaidify" />
+    <div class="propic-wrapper">
+      <div class="propic cursor-pointer" [class.skeleton]="!userProfile?.images?.length"
+        (click)="showProfileMenu = !showProfileMenu">
+        <img *ngIf="userProfile?.images?.length" [src]="userProfile!.images![0].url" [alt]="userProfile!.id" />
+      </div>
+      <div class="profile-menu" *ngIf="showProfileMenu">
+        <button class="hover-surface" (click)="logout()">Logout</button>
+      </div>
+      <div class="overlay" *ngIf="showProfileMenu" (click)="showProfileMenu = false"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="content">
+      <div class="welcome">
+        Welcome
+        <span *ngIf="userProfile?.display_name; else nameSkeleton">{{ userProfile!.display_name }}</span>
+        <ng-template #nameSkeleton><span
+            class="skeleton rounded-lg inline-block align-middle w-32 h-7"></span></ng-template>
+      </div>
+
+      <div class="columns">
+        <div class="column">
+          <div class="title">Your Playlists</div>
+
+          <div class="playlist-grid p-4">
+            <ng-container *ngIf="playlists; else playlistSkeletons">
+              <all-playlists-card [selected]="allSelected" (hasClicked)="toggleAll()"></all-playlists-card>
+              <playlist-card *ngFor="let playlist of playlists" [playlist]="playlist"
+                [class.selected]="selectedPlaylistIds.has(playlist.id)"
+                (hasClicked)="togglePlaylist($event)"></playlist-card>
+            </ng-container>
+            <ng-template #playlistSkeletons>
+              <playlist-card-skeleton *ngFor="let i of [1,2,3,4,5,6,7,8]"></playlist-card-skeleton>
+            </ng-template>
+          </div>
+        </div>
+
+        <div class="column">
+          <div class="title">Mislaid Tracks</div>
+
+          <ng-container [ngSwitch]="selectedPlaylistIds.size !== 0">
+            <div class="tracks-wrapper" *ngSwitchCase="true">
+              <div class="tracks" #tracksContainer>
+                <ng-container *ngIf="mislaidTracks?.length; else trackSkeletons">
+                  <track-card *ngFor="let track of mislaidTracks" [track]="track"
+                    (selectionChange)="onTrackSelectionChange(track, $event)"></track-card>
+                </ng-container>
+                <ng-template #trackSkeletons>
+                  <track-card-skeleton *ngFor="let i of [1,2,3,4,5,6,7,8]"></track-card-skeleton>
+                </ng-template>
+              </div>
+
+              <button *ngIf="hasSelectedTracks"
+                class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 text-primary bg-secondary font-bold uppercase truncate glow-secondary"
+                (click)="openAddToPlaylistModal()">
+                <add-track-to-playlist-icon />
+                Add to playlist
+              </button>
+
+            </div>
+
+            <div class="suggestion" *ngSwitchDefault>
+              <div>
+                <img src="assets/mislaid_illustration.svg" alt="" aria-hidden="true" class="w-64 mb-2" />
+                <div class="main-info">
+                  <p><span>Select playlists</span> to find songs not in them yet.</p>
+                </div>
+                <div class="sub-info">
+                  <p>We compare your saved songs with the playlist you select and show you the ones that haven't been
+                    added.</p>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <add-to-playlist-modal
+    *ngIf="showModal"
+    [selectedTrackIds]="selectedTrackIds"
+    [playlists]="selectedPlaylistList"
+    [isAddingTracks]="isAddingTracks"
+    (close)="showModal = false"
+    (confirm)="confirmAddTracks($event)">
+  </add-to-playlist-modal>
 </div>

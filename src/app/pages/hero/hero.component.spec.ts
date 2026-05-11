@@ -1,18 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AuthService } from '@services/auth/auth.service';
+import { SpotifyService } from '@services/spotify/spotify.service';
 import { HeroComponent } from './hero.component';
 
 describe('HeroComponent', () => {
   let component: HeroComponent;
   let fixture: ComponentFixture<HeroComponent>;
-  let authService: jest.Mocked<Pick<AuthService, 'redirectToSpotifyAuth'>>;
+  let spotifyService: jest.Mocked<Pick<SpotifyService, 'authenticate' | 'logout'>>;
 
   beforeEach(async () => {
-    authService = { redirectToSpotifyAuth: jest.fn().mockResolvedValue(undefined) };
+    spotifyService = {
+      authenticate: jest.fn().mockResolvedValue({ authenticated: false, accessToken: null }),
+      logout: jest.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [HeroComponent],
-      providers: [{ provide: AuthService, useValue: authService }],
+      providers: [{ provide: SpotifyService, useValue: spotifyService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeroComponent);
@@ -25,13 +28,20 @@ describe('HeroComponent', () => {
   });
 
   describe('login button', () => {
-    it('calls redirectToSpotifyAuth when clicked', () => {
-      fixture.nativeElement.querySelector('.login-button').click();
-      expect(authService.redirectToSpotifyAuth).toHaveBeenCalledTimes(1);
+    it('does not call logout or authenticate before any interaction', () => {
+      expect(spotifyService.logout).not.toHaveBeenCalled();
+      expect(spotifyService.authenticate).not.toHaveBeenCalled();
     });
 
-    it('does not call redirectToSpotifyAuth before any interaction', () => {
-      expect(authService.redirectToSpotifyAuth).not.toHaveBeenCalled();
+    it('calls logout then authenticate when clicked', async () => {
+      const callOrder: string[] = [];
+      spotifyService.logout.mockImplementation(() => callOrder.push('logout'));
+      spotifyService.authenticate.mockImplementation(async () => { callOrder.push('authenticate'); return { authenticated: false, accessToken: null } as any; });
+
+      fixture.nativeElement.querySelector('.login-button').click();
+      await fixture.whenStable();
+
+      expect(callOrder).toEqual(['logout', 'authenticate']);
     });
   });
 });

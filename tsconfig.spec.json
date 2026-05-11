@@ -6,7 +6,8 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "types": [
-      "jest"
+      "jest",
+      "spotify-api"
     ]
   },
   "include": [

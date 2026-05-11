@@ -1,14 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { AuthService } from '@services/auth/auth.service';
+import { SpotifyService } from '@services/spotify/spotify.service';
+import { SpotifyIconComponent } from '@components/spotify-icon/spotify-icon.component';
 
 @Component({
   selector: 'app-hero',
-  imports: [CommonModule],
+  imports: [CommonModule, SpotifyIconComponent],
   templateUrl: './hero.component.html',
   styleUrl: './hero.component.scss'
 })
 export class HeroComponent {
-  constructor(public authService: AuthService) { }
+  constructor(public spotifyService: SpotifyService) { }
 
+  public async login(): Promise<void> {
+    this.spotifyService.logout();
+    await this.spotifyService.authenticate();
+  }
 }

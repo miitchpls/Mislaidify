@@ -1,0 +1,134 @@
+@reference '../../../styles.css';
+
+.dashboard {
+  @apply p-8 pb-0 h-screen overflow-hidden flex flex-col items-center text-white;
+
+  &::before {
+    content: '';
+    @apply absolute inset-0 z-[-1] opacity-5 bg-app-background;
+  }
+
+  .header {
+    @apply w-full flex justify-between mb-9 gap-4;
+
+    .propic-wrapper {
+      @apply relative;
+
+      .propic {
+        @apply rounded-full overflow-hidden bg-slate-700 h-8 w-8 min-w-8;
+      }
+
+      .profile-menu {
+        @apply absolute right-0 top-10 bg-primary-surface rounded-xl overflow-hidden z-20 min-w-28;
+
+        button {
+          @apply w-full px-4 py-2 text-left text-sm;
+        }
+      }
+
+      .overlay {
+        @apply fixed inset-0 z-10;
+      }
+    }
+  }
+
+  .container {
+    @apply mx-auto h-full flex overflow-hidden;
+
+    .content {
+      @apply flex flex-col grow;
+
+      .welcome {
+        @apply mb-6 text-3xl font-medium;
+
+        span {
+          @apply font-bold text-secondary;
+        }
+      }
+
+      .columns {
+        @apply flex gap-4 overflow-hidden;
+
+        .column {
+          @apply flex flex-col flex-1 grow;
+
+          .title {
+            @apply text-xl font-medium mb-6;
+          }
+        }
+      }
+    }
+  }
+}
+
+.playlist-grid {
+  @apply max-w-xl grid grid-cols-7 gap-4 overflow-auto;
+
+  :nth-child(4n + 1) {
+    @apply col-start-1 col-end-4;
+  }
+
+  :nth-child(4n + 2) {
+    @apply col-start-4 col-end-7;
+  }
+
+  :nth-child(4n + 3) {
+    @apply col-start-2 col-end-5;
+  }
+
+  :nth-child(4n + 4) {
+    @apply col-start-5 col-end-8;
+  }
+}
+
+.tracks-wrapper {
+  @apply flex grow pr-1 overflow-hidden relative;
+
+  &::before,
+  &::after {
+    @apply content-[''] h-16 absolute left-0 z-10 pointer-events-none;
+    width: calc(100% - 12px);
+  }
+
+  &::before {
+    @apply top-0 bg-linear-to-b from-primary-variant;
+  }
+
+  &::after {
+    @apply bottom-0 bg-linear-to-t from-primary-variant;
+  }
+
+  .tracks {
+    @apply flex flex-col overflow-auto grow pr-1;
+
+    &::-webkit-scrollbar-track {
+      @apply hidden;
+    }
+
+    :first-child,
+    :last-child {
+      @apply z-20;
+    }
+  }
+}
+
+.suggestion {
+  @apply flex justify-center items-start grow text-center cursor-default pt-12;
+
+  div {
+    @apply flex flex-col items-center gap-5;
+
+    .main-info {
+      @apply flex-none text-3xl font-semibold max-w-sm;
+
+      span {
+        @apply text-secondary font-bold;
+      }
+    }
+
+    .sub-info {
+      @apply font-medium text-white/60 max-w-80;
+    }
+  }
+
+}

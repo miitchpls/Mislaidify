@@ -1,9 +1,10 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
-import { SESSION_VERIFIER_KEY } from '@constants';
+import { SpotifyService } from '@services/spotify/spotify.service';
 
-export const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
+export const authGuard: CanActivateFn = async (route: ActivatedRouteSnapshot) => {
   const router = inject(Router);
+  const spotifyService = inject(SpotifyService);
 
   if (route.queryParams['error']) {
     return router.createUrlTree(['/']);
@@ -13,9 +14,6 @@ export const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
     return true;
   }
 
-  if (sessionStorage.getItem(SESSION_VERIFIER_KEY)) {
-    return true;
-  }
-
-  return router.createUrlTree(['/']);
+  const authenticated = await spotifyService.isAuthenticated();
+  return authenticated ? true : router.createUrlTree(['/']);
 };

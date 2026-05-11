@@ -4,7 +4,7 @@
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
     "rootDir": "./src",
-    "types": ["jest"],
+    "types": ["jest", "spotify-api"],
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -25,12 +25,13 @@
       "dom"
     ],
     "paths": {
-      "@models": ["./src/app/models/index.d.ts"],
       "@models/*": ["./src/app/models/*"],
       "@services/*": ["./src/app/services/*"],
       "@environments/*": ["./src/environments/*"],
       "@constants": ["./src/app/constants.ts"],
-      "@guards/*": ["./src/app/guards/*"]
+      "@guards/*": ["./src/app/guards/*"],
+      "@components/*": ["./src/app/components/*"],
+      "@directives/*": ["./src/app/directives/*"]
     }
   },
   "angularCompilerOptions": {

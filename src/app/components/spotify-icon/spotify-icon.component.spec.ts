@@ -1,0 +1,27 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { SpotifyIconComponent } from './spotify-icon.component';
+
+describe('SpotifyIconComponent', () => {
+  let component: SpotifyIconComponent;
+  let fixture: ComponentFixture<SpotifyIconComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [SpotifyIconComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(SpotifyIconComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('binds the class input to the host element', () => {
+    component.class = 'text-spotify';
+    fixture.detectChanges();
+    expect(fixture.nativeElement.className).toBe('text-spotify');
+  });
+});

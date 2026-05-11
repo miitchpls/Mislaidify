@@ -1,0 +1,21 @@
+@reference '../../../styles.css';
+
+.all-playlists-card {
+  @apply aspect-square rounded-3xl flex flex-col-reverse justify-between relative overflow-hidden p-5 cursor-pointer brightness-50 bg-secondary;
+
+  &:hover {
+    @apply brightness-100;
+  }
+
+  p {
+    @apply text-lg font-bold z-10 text-primary;
+  }
+
+  svg {
+    @apply fill-primary w-8 h-8;
+  }
+}
+
+.all-playlists-card.selected {
+  @apply brightness-100 ring-4 ring-secondary;
+}

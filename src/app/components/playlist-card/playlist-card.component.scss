@@ -1,0 +1,25 @@
+@reference '../../../styles.css';
+
+:host(.selected) .playlist-card {
+  @apply brightness-100 ring-4 ring-secondary;
+}
+
+.playlist-card {
+  @apply aspect-square rounded-3xl flex flex-col-reverse relative overflow-hidden p-5 cursor-pointer brightness-50;
+
+  &:hover {
+    @apply brightness-100;
+  }
+
+  img {
+    @apply absolute inset-0  w-full h-full object-cover;
+  }
+
+  &::after {
+    @apply content-[''] absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-black/70 to-transparent z-5;
+  }
+
+  p {
+    @apply text-lg font-bold z-10;
+  }
+}
