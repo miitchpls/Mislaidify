@@ -7,7 +7,7 @@
         <img *ngIf="userProfile?.images?.length" [src]="userProfile!.images![0].url" [alt]="userProfile!.id" />
       </div>
       <div class="profile-menu" *ngIf="showProfileMenu">
-        <button (click)="logout()">Logout</button>
+        <button class="hover-surface" (click)="logout()">Logout</button>
       </div>
       <div class="overlay" *ngIf="showProfileMenu" (click)="showProfileMenu = false"></div>
     </div>

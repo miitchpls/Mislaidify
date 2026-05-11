@@ -22,7 +22,7 @@
         @apply absolute right-0 top-10 bg-primary-surface rounded-xl overflow-hidden z-20 min-w-28;
 
         button {
-          @apply w-full px-4 py-2 text-left text-sm hover:bg-primary-surface-highlight transition-colors;
+          @apply w-full px-4 py-2 text-left text-sm;
         }
       }
 

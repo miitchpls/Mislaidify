@@ -8,8 +8,8 @@ input {
   checked:after:ms-1 checked:after:block checked:after:h-3.25 checked:after:w-1.5 checked:after:rotate-45 
   checked:after:border-2 checked:after:border-l-0 checked:after:border-t-0;
 
-  @apply hover:cursor-pointer;
-  @apply focus:shadow-none focus:transition-[border-color_0.2s];
+  &:hover { cursor: pointer; }
+  &:focus { box-shadow: none; transition: border-color 0.2s; }
 }
 
 input + label {

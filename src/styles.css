@@ -11,6 +11,24 @@
   --color-primary-surface-highlight: #3d3268;
 }
 
+:root {
+  --color-primary-surface-highlight-hover: color-mix(in srgb, var(--color-primary-surface-highlight) 50%, transparent);
+}
+
+.focus-ring-secondary {
+  &:focus { box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-secondary) 50%, transparent); }
+}
+
+.hover-surface {
+  transition: background-color 150ms;
+  &:hover { background: var(--color-primary-surface-highlight); }
+}
+
+.hover-surface-subtle {
+  transition: background-color 150ms;
+  &:hover { background: var(--color-primary-surface-highlight-hover); }
+}
+
 * {
   @apply font-sans;
 }

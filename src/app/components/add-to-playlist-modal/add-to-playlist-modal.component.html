@@ -26,10 +26,10 @@
       {{ selectedTrackIds.size === 1 ? 'track' : 'tracks' }} selected
     </span>
   </div>
-  <input class="search-bar" type="text" placeholder="Search playlists..." [(ngModel)]="searchQuery" />
+  <input class="search-bar focus-ring-secondary" type="text" placeholder="Search playlists..." [(ngModel)]="searchQuery" />
 
   <div class="playlist-picker">
-    <div *ngFor="let playlist of filteredPlaylists" class="picker-item" [class.picked]="targetPlaylistIds.has(playlist.id)"
+    <div *ngFor="let playlist of filteredPlaylists" class="picker-item hover-surface-subtle" [class.picked]="targetPlaylistIds.has(playlist.id)"
       (click)="toggleTargetPlaylist(playlist.id)">
       <checkbox [checked]="targetPlaylistIds.has(playlist.id)"></checkbox>
       <img *ngIf="playlist.images[0]?.url; else noImage" class="playlist-cover" [src]="playlist.images[0].url" [alt]="playlist.name" />
