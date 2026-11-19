@@ -1,8 +1,11 @@
 # Mislaidify
 
+> [!NOTE]
+> This project is no longer maintained. Spotify now grants [production API access](https://developer.spotify.com/documentation/web-api/concepts/quota-modes) only to registered businesses with a large user base, and limits personal apps to development mode: up to 5 users, with Spotify Premium required for the app owner.
+
 > Listen. Save. Organize. Repeat.
 
-Mislaidify is a web app that checks which of your saved Spotify songs are not in any of your playlists.
+Mislaidify finds the saved Spotify songs that are not in any of your playlists.
 
 The idea came from a personal habit: finding great songs while driving, saving them to Spotify, and then never getting around to organizing them into playlists. Over time they'd just pile up — forgotten somewhere in a library of over 8000 saved tracks. Mislaidify solves exactly that: it scans your saved songs and surfaces the ones that haven't been added to any playlist yet, so nothing gets lost in the pile.
 
@@ -13,12 +16,6 @@ Built with Angular 19 and Tailwind CSS.
 ![Hero page](src/assets/hero_page.jpg)
 
 ![Dashboard](src/assets/dashboard_selection.jpg)
-
-## Project history
-
-Originally started in May 2024, this project was refactored in May 2026.
-
-This app will not be publicly released. Since Spotify restricted their API access to organizations only, individual developers can no longer publish apps to production using the Spotify API.
 
 ## Getting started
 
